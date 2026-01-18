@@ -2,6 +2,7 @@
 
 require "thor"
 require "date"
+require_relative "version"
 require "harbinger/analyzers/ruby_detector"
 require "harbinger/analyzers/rails_analyzer"
 require "harbinger/eol_fetcher"
