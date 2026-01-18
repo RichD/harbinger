@@ -133,4 +133,54 @@ RSpec.describe Harbinger::Analyzers::RailsAnalyzer do
       end
     end
   end
+
+  describe "#rails_detected?" do
+    context "when Gemfile.lock contains rails gem" do
+      let(:gemfile_lock_content) do
+        <<~LOCKFILE
+          GEM
+            specs:
+              rails (7.0.8)
+        LOCKFILE
+      end
+
+      before do
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile.lock").and_return(true)
+        allow(File).to receive(:read).with("#{project_path}/Gemfile.lock").and_return(gemfile_lock_content)
+      end
+
+      it "returns true" do
+        expect(analyzer.rails_detected?).to be true
+      end
+    end
+
+    context "when Gemfile.lock exists but does not contain rails" do
+      let(:gemfile_lock_content) do
+        <<~LOCKFILE
+          GEM
+            specs:
+              sinatra (3.0.5)
+        LOCKFILE
+      end
+
+      before do
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile.lock").and_return(true)
+        allow(File).to receive(:read).with("#{project_path}/Gemfile.lock").and_return(gemfile_lock_content)
+      end
+
+      it "returns false" do
+        expect(analyzer.rails_detected?).to be false
+      end
+    end
+
+    context "when Gemfile.lock does not exist" do
+      before do
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile.lock").and_return(false)
+      end
+
+      it "returns false" do
+        expect(analyzer.rails_detected?).to be false
+      end
+    end
+  end
 end

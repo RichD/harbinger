@@ -134,4 +134,49 @@ RSpec.describe Harbinger::Analyzers::RubyDetector do
       end
     end
   end
+
+  describe "#ruby_detected?" do
+    context "when Gemfile exists" do
+      before do
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile").and_return(true)
+      end
+
+      it "returns true" do
+        expect(detector.ruby_detected?).to be true
+      end
+    end
+
+    context "when Gemfile.lock exists" do
+      before do
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile").and_return(false)
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile.lock").and_return(true)
+      end
+
+      it "returns true" do
+        expect(detector.ruby_detected?).to be true
+      end
+    end
+
+    context "when .ruby-version exists" do
+      before do
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile").and_return(false)
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile.lock").and_return(false)
+        allow(File).to receive(:exist?).with("#{project_path}/.ruby-version").and_return(true)
+      end
+
+      it "returns true" do
+        expect(detector.ruby_detected?).to be true
+      end
+    end
+
+    context "when no Ruby files exist" do
+      before do
+        allow(File).to receive(:exist?).and_return(false)
+      end
+
+      it "returns false" do
+        expect(detector.ruby_detected?).to be false
+      end
+    end
+  end
 end

@@ -13,6 +13,12 @@ module Harbinger
           detect_from_gemfile_lock
       end
 
+      def ruby_detected?
+        File.exist?(File.join(project_path, "Gemfile")) ||
+          File.exist?(File.join(project_path, "Gemfile.lock")) ||
+          File.exist?(File.join(project_path, ".ruby-version"))
+      end
+
       private
 
       attr_reader :project_path

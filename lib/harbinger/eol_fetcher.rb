@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "net/http"
+require "httparty"
 require "json"
 require "fileutils"
 
@@ -80,12 +80,12 @@ module Harbinger
     end
 
     def fetch_from_api(product)
-      uri = URI("#{API_BASE_URL}/#{product}.json")
-      response = Net::HTTP.get_response(uri)
+      url = "#{API_BASE_URL}/#{product}.json"
+      response = HTTParty.get(url)
 
-      raise "API request failed: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+      raise "API request failed: #{response.code}" unless response.success?
 
-      JSON.parse(response.body)
+      response.parsed_response
     end
   end
 end

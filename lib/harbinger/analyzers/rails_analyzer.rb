@@ -11,6 +11,16 @@ module Harbinger
         detect_from_gemfile_lock
       end
 
+      def rails_detected?
+        gemfile_lock = File.join(project_path, "Gemfile.lock")
+        return false unless File.exist?(gemfile_lock)
+
+        content = File.read(gemfile_lock)
+        content.match?(/^\s*rails\s+\(/)
+      rescue StandardError
+        false
+      end
+
       private
 
       attr_reader :project_path
