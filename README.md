@@ -16,6 +16,15 @@ Harbinger is a CLI tool that scans your Ruby and Rails projects, detects version
 
 ## Installation
 
+### Homebrew (macOS)
+
+```bash
+brew tap RichD/harbinger
+brew install stackharbinger
+```
+
+### RubyGems
+
 ```bash
 gem install stackharbinger
 ```
@@ -26,7 +35,7 @@ Or add to your Gemfile:
 gem 'stackharbinger'
 ```
 
-The command is still `harbinger` (shorter to type).
+The command is `harbinger` (shorter to type).
 
 ## Usage
 
@@ -158,6 +167,7 @@ bundle exec exe/harbinger scan .
 - ✅ Dashboard: `harbinger show` to see all tracked projects
 - ✅ Config management: Save and track multiple projects with `--save`
 - ✅ Recursive scanning: `--recursive` flag to scan multiple projects at once
+- ✅ Homebrew distribution: `brew install stackharbinger`
 - ✅ Enhanced project tracking with YAML config
 
 ### V0.3.0 - Planned
@@ -170,7 +180,7 @@ bundle exec exe/harbinger scan .
 - 🐍 Python support (pyproject.toml, requirements.txt)
 - 📦 Node.js support (package.json, .nvmrc)
 - 🦀 Rust support (Cargo.toml)
-- 🏠 Homebrew distribution: `brew install harbinger`
+- 🐘 Go support (go.mod)
 
 ### V2.0 - Vision
 - 🤖 AI-powered upgrade summaries
