@@ -40,9 +40,14 @@ module Harbinger
       # Extract major.minor from version (e.g., "3.2.1" -> "3.2")
       version_parts = version.split(".")
       major_minor = "#{version_parts[0]}.#{version_parts[1]}"
+      major = version_parts[0]
 
-      # Find matching cycle
+      # Try major.minor first (e.g., "8.0" for MySQL, "3.2" for Ruby)
       entry = data.find { |item| item["cycle"] == major_minor }
+      return entry["eol"] if entry
+
+      # Fall back to major only (e.g., "16" for PostgreSQL)
+      entry = data.find { |item| item["cycle"] == major }
       entry ? entry["eol"] : nil
     end
 
