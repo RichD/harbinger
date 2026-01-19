@@ -131,6 +131,30 @@ RSpec.describe Harbinger::Analyzers::RailsAnalyzer do
 
         expect(analyzer.detect).to eq("5.2.8.1")
       end
+
+      it "strips >= constraint operator" do
+        lockfile = "  rails (>= 3.2.11)"
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile.lock").and_return(true)
+        allow(File).to receive(:read).with("#{project_path}/Gemfile.lock").and_return(lockfile)
+
+        expect(analyzer.detect).to eq("3.2.11")
+      end
+
+      it "strips ~> constraint operator" do
+        lockfile = "  rails (~> 4.2.0)"
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile.lock").and_return(true)
+        allow(File).to receive(:read).with("#{project_path}/Gemfile.lock").and_return(lockfile)
+
+        expect(analyzer.detect).to eq("4.2.0")
+      end
+
+      it "strips = constraint operator" do
+        lockfile = "  rails (= 5.1.7)"
+        allow(File).to receive(:exist?).with("#{project_path}/Gemfile.lock").and_return(true)
+        allow(File).to receive(:read).with("#{project_path}/Gemfile.lock").and_return(lockfile)
+
+        expect(analyzer.detect).to eq("5.1.7")
+      end
     end
   end
 

@@ -31,7 +31,11 @@ module Harbinger
 
         content = File.read(file_path)
         match = content.match(/^\s*rails\s+\(([^)]+)\)/)
-        match ? match[1] : nil
+        return nil unless match
+
+        version_string = match[1]
+        # Strip version constraint operators (>=, ~>, =, etc.) and extract actual version
+        version_string.sub(/^[><=~!\s]+/, "").strip
       rescue StandardError
         nil
       end
