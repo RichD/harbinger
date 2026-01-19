@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-01-18
+
+### Added
+- **PostgreSQL detection**: Detects PostgreSQL versions from Rails projects
+  - Checks `config/database.yml` for `adapter: postgresql`
+  - Runs `psql --version` for local databases
+  - Falls back to `pg` gem version from `Gemfile.lock`
+  - Skips shell commands for remote databases (AWS RDS, etc.) to avoid client vs server version mismatch
+- **MySQL detection**: Detects MySQL versions from Rails projects
+  - Supports both `mysql2` and `trilogy` adapters (Rails 7.1+)
+  - Runs `mysql --version` or `mysqld --version` for local databases
+  - Falls back to gem version from `Gemfile.lock`
+  - Smart remote database detection
+- **Rescan command**: `harbinger rescan` to bulk update all tracked projects
+  - Updates all projects with latest detected versions
+  - Automatically removes projects with missing directories
+  - `--verbose` flag for detailed output
+  - Progress counter shows scan status
+- **Enhanced dashboard**: PostgreSQL and MySQL columns in `harbinger show`
+  - Database versions displayed in table
+  - Database EOL dates included in status calculation
+  - Dashboard prioritizes database EOL issues
+- **Database EOL tracking**: Fetches EOL data for PostgreSQL and MySQL
+  - `harbinger update` now fetches database EOL data
+  - Supports major-only version cycles (PostgreSQL) and major.minor cycles (MySQL)
+- **Multi-database support**: Handles Rails 6+ multi-database configurations
+
+### Changed
+- `EolFetcher` now supports major-only version matching (PostgreSQL uses "16", not "16.11")
+- Scan output includes database versions with aligned formatting
+- Status calculation includes database EOL dates
+
+### Technical
+- Added `DatabaseDetector` abstract base class for database detection
+- Added `PostgresDetector` with local/remote detection (116 total tests passing)
+- Added `MysqlDetector` with trilogy and mysql2 support
+- Test fixtures for various database.yml configurations
+- Remote database detection to avoid shell command mismatches
+- Support for single and multi-database Rails configurations
+
 ## [0.2.0] - 2026-01-18
 
 ### Added
