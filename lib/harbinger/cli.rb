@@ -244,9 +244,19 @@ module Harbinger
     def scan_recursive(base_path)
       say "Scanning #{base_path} recursively for Ruby projects...", :cyan
 
-      # Find all directories with Gemfiles
+      # Find all directories with Gemfiles, excluding common non-project directories
+      excluded_patterns = %w[
+        vendor/
+        node_modules/
+        tmp/
+        .git/
+        spec/fixtures/
+        test/fixtures/
+      ]
+
       gemfile_dirs = Dir.glob(File.join(base_path, "**/Gemfile"))
                         .map { |f| File.dirname(f) }
+                        .reject { |dir| excluded_patterns.any? { |pattern| dir.include?("/#{pattern}") } }
                         .sort
 
       if gemfile_dirs.empty?
