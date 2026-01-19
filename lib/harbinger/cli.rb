@@ -37,8 +37,8 @@ module Harbinger
       end
     end
 
-    desc "show", "Show EOL status for tracked projects"
-    def show
+    desc "show [PROJECT]", "Show EOL status for tracked projects"
+    def show(project_filter = nil)
       config_manager = ConfigManager.new
       projects = config_manager.list_projects
 
@@ -46,6 +46,19 @@ module Harbinger
         say "No projects tracked yet.", :yellow
         say "Use 'harbinger scan --save' to add projects", :cyan
         return
+      end
+
+      # Filter by project name or path if specified
+      if project_filter
+        projects = projects.select do |name, data|
+          name.downcase.include?(project_filter.downcase) ||
+            data["path"]&.downcase&.include?(project_filter.downcase)
+        end
+
+        if projects.empty?
+          say "No projects matching '#{project_filter}'", :yellow
+          return
+        end
       end
 
       fetcher = EolFetcher.new
