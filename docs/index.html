@@ -115,6 +115,8 @@
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger scan --save</code> - Save project for tracking</li>
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger scan --recursive</code> - Scan all projects in a directory</li>
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger show [PROJECT] [-v]</code> - View dashboard (filter by name/path, -v shows paths)</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger show --format json|csv</code> - Export data to JSON or CSV</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger show --format json -o report.json</code> - Save export to file</li>
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger rescan</code> - Re-scan all tracked projects and update versions</li>
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger remove PROJECT</code> - Remove a project from tracking</li>
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger update</code> - Force refresh EOL data from API</li>
@@ -129,21 +131,21 @@
         <h2 class="text-3xl font-bold mb-8 text-center">Roadmap</h2>
         <div class="grid md:grid-cols-3 gap-8">
             <div>
-                <h3 class="text-xl font-semibold mb-4 text-green-600">✅ V0.3.0 (Current)</h3>
+                <h3 class="text-xl font-semibold mb-4 text-green-600">✅ V0.4.0 (Current)</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li>• Export to JSON/CSV</li>
+                    <li>• Docker Compose detection</li>
+                    <li>• Redis detection</li>
+                    <li>• MongoDB detection</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold mb-4 text-blue-600">📋 V0.3.0</h3>
                 <ul class="space-y-2 text-gray-600">
                     <li>• PostgreSQL detection</li>
                     <li>• MySQL detection</li>
                     <li>• Rescan command</li>
                     <li>• Smart dashboard filtering</li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="text-xl font-semibold mb-4 text-blue-600">📋 V0.4.0 (Planned)</h3>
-                <ul class="space-y-2 text-gray-600">
-                    <li>• Export to JSON/CSV</li>
-                    <li>• Custom EOL thresholds</li>
-                    <li>• Docker Compose detection</li>
-                    <li>• Redis/MongoDB detection</li>
                 </ul>
             </div>
             <div>

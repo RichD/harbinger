@@ -13,6 +13,8 @@ require "harbinger/analyzers/redis_detector"
 require "harbinger/analyzers/mongo_detector"
 require "harbinger/eol_fetcher"
 require "harbinger/config_manager"
+require "harbinger/exporters/json_exporter"
+require "harbinger/exporters/csv_exporter"
 
 module Harbinger
   class CLI < Thor
@@ -41,6 +43,8 @@ module Harbinger
 
     desc "show [PROJECT]", "Show EOL status for tracked projects"
     option :verbose, type: :boolean, aliases: "-v", desc: "Show project paths"
+    option :format, type: :string, enum: %w[table json csv], default: "table", desc: "Output format (table, json, csv)"
+    option :output, type: :string, aliases: "-o", desc: "Output file path"
     def show(project_filter = nil)
       config_manager = ConfigManager.new
       projects = config_manager.list_projects
@@ -62,6 +66,12 @@ module Harbinger
           say "No projects matching '#{project_filter}'", :yellow
           return
         end
+      end
+
+      # Handle export formats
+      if options[:format] != "table"
+        export_data(projects, options[:format], options[:output])
+        return
       end
 
       fetcher = EolFetcher.new
@@ -598,6 +608,24 @@ module Harbinger
         "\e[32m#{text}\e[0m"
       else
         text
+      end
+    end
+
+    def export_data(projects, format, output_path)
+      exporter = case format
+                 when "json"
+                   Exporters::JsonExporter.new(projects)
+                 when "csv"
+                   Exporters::CsvExporter.new(projects)
+                 end
+
+      result = exporter.export
+
+      if output_path
+        File.write(output_path, result)
+        say "Exported to #{output_path}", :green
+      else
+        puts result
       end
     end
   end

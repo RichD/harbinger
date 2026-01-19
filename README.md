@@ -96,6 +96,23 @@ harbinger show -v
 harbinger show job --verbose
 ```
 
+### Export data
+
+```bash
+# Export to JSON (stdout)
+harbinger show --format json
+
+# Export to CSV (stdout)
+harbinger show --format csv
+
+# Save to file
+harbinger show --format json -o report.json
+harbinger show --format csv --output eol-report.csv
+
+# Export filtered projects
+harbinger show myproject --format json
+```
+
 **Example output:**
 
 ```
@@ -212,18 +229,18 @@ bundle exec exe/harbinger scan .
 
 ## Roadmap
 
-### V0.3.0 - Current
+### V0.4.0 - Current
+- ✅ Export reports to JSON/CSV
+- ✅ Docker Compose database version detection
+- ✅ Redis version detection
+- ✅ MongoDB version detection
+
+### V0.3.0
 - ✅ PostgreSQL version detection with local/remote database handling
 - ✅ MySQL version detection (mysql2 and trilogy adapters)
 - ✅ Rescan command to update all tracked projects
 - ✅ Enhanced dashboard with database columns
 - ✅ EOL tracking for PostgreSQL and MySQL
-
-### V0.4.0 - Planned
-- 📋 Export reports to JSON/CSV
-- 🐳 Docker Compose database version detection
-- 🔴 Redis version detection
-- 🍃 MongoDB version detection
 
 ### V1.0 - Future
 - 🐍 Python support (pyproject.toml, requirements.txt)
