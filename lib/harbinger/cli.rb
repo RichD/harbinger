@@ -57,6 +57,8 @@ module Harbinger
       projects.each do |name, data|
         ruby_version = data["ruby"]
         rails_version = data["rails"]
+        postgres_version = data["postgres"]
+        mysql_version = data["mysql"]
 
         # Determine worst EOL status
         worst_status = :green
@@ -90,15 +92,45 @@ module Harbinger
           end
         end
 
+        if postgres_version && !postgres_version.empty? && !postgres_version.include?("gem")
+          postgres_eol = fetcher.eol_date_for("postgresql", postgres_version)
+          if postgres_eol
+            days = days_until(postgres_eol)
+            status = eol_color(days)
+            worst_status = status if status_priority(status) > status_priority(worst_status)
+            if days < 0
+              status_text = "✗ PostgreSQL EOL"
+            elsif days < 180 && !status_text.include?("EOL")
+              status_text = "⚠ PostgreSQL ending soon"
+            end
+          end
+        end
+
+        if mysql_version && !mysql_version.empty? && !mysql_version.include?("gem")
+          mysql_eol = fetcher.eol_date_for("mysql", mysql_version)
+          if mysql_eol
+            days = days_until(mysql_eol)
+            status = eol_color(days)
+            worst_status = status if status_priority(status) > status_priority(worst_status)
+            if days < 0
+              status_text = "✗ MySQL EOL"
+            elsif days < 180 && !status_text.include?("EOL")
+              status_text = "⚠ MySQL ending soon"
+            end
+          end
+        end
+
         ruby_display = ruby_version && !ruby_version.empty? ? ruby_version : "-"
         rails_display = rails_version && !rails_version.empty? ? rails_version : "-"
+        postgres_display = postgres_version && !postgres_version.empty? ? postgres_version : "-"
+        mysql_display = mysql_version && !mysql_version.empty? ? mysql_version : "-"
 
-        rows << [name, ruby_display, rails_display, colorize_status(status_text, worst_status)]
+        rows << [name, ruby_display, rails_display, postgres_display, mysql_display, colorize_status(status_text, worst_status)]
       end
 
       # Sort by status priority (worst first), then by name
       rows.sort_by! do |row|
-        status = row[3]
+        status = row[5] # Status is now in column 5 (0-indexed)
         priority = if status.include?("✗")
           0
         elsif status.include?("⚠")
@@ -110,7 +142,7 @@ module Harbinger
       end
 
       table = TTY::Table.new(
-        header: ["Project", "Ruby", "Rails", "Status"],
+        header: ["Project", "Ruby", "Rails", "PostgreSQL", "MySQL", "Status"],
         rows: rows
       )
 
