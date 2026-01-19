@@ -23,7 +23,7 @@ module Harbinger
     option :save, type: :boolean, aliases: "-s", desc: "Save project to config for dashboard"
     option :recursive, type: :boolean, aliases: "-r", desc: "Recursively scan all subdirectories with Gemfiles"
     def scan
-      project_path = options[:path] || Dir.pwd
+      project_path = File.expand_path(options[:path] || Dir.pwd)
 
       unless File.directory?(project_path)
         say "Error: #{project_path} is not a valid directory", :red
@@ -38,6 +38,7 @@ module Harbinger
     end
 
     desc "show [PROJECT]", "Show EOL status for tracked projects"
+    option :verbose, type: :boolean, aliases: "-v", desc: "Show project paths"
     def show(project_filter = nil)
       config_manager = ConfigManager.new
       projects = config_manager.list_projects
@@ -156,6 +157,7 @@ module Harbinger
 
         rows << {
           name: name,
+          path: File.dirname(data["path"] || ""),
           ruby: ruby_present ? ruby_version : "-",
           rails: rails_present ? rails_version : "-",
           postgres: postgres_present ? postgres_version : "-",
@@ -188,6 +190,7 @@ module Harbinger
 
       # Build dynamic headers and rows
       headers = ["Project"]
+      headers << "Path" if options[:verbose]
       headers << "Ruby" if has_ruby
       headers << "Rails" if has_rails
       headers << "PostgreSQL" if has_postgres
@@ -196,6 +199,7 @@ module Harbinger
 
       table_rows = rows.map do |row|
         table_row = [row[:name]]
+        table_row << row[:path] if options[:verbose]
         table_row << row[:ruby] if has_ruby
         table_row << row[:rails] if has_rails
         table_row << row[:postgres] if has_postgres
@@ -209,7 +213,7 @@ module Harbinger
         rows: table_rows
       )
 
-      puts table.render(:unicode, padding: [0, 1])
+      puts table.render(:unicode, padding: [0, 1], resize: false)
 
       say "\nUse 'harbinger scan --path <project>' to update a project", :cyan
     end

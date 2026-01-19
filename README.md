@@ -90,6 +90,10 @@ harbinger show
 # Filter to specific project(s) by name or path
 harbinger show budget
 harbinger show job
+
+# Show project paths with verbose mode
+harbinger show -v
+harbinger show job --verbose
 ```
 
 **Example output:**
