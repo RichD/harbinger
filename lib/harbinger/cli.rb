@@ -48,11 +48,14 @@ module Harbinger
         return
       end
 
-      say "Tracked Projects (#{projects.size})", :cyan
-      say "=" * 80, :cyan
-
       fetcher = EolFetcher.new
       rows = []
+
+      # Track which columns have data
+      has_ruby = false
+      has_rails = false
+      has_postgres = false
+      has_mysql = false
 
       projects.each do |name, data|
         ruby_version = data["ruby"]
@@ -60,17 +63,35 @@ module Harbinger
         postgres_version = data["postgres"]
         mysql_version = data["mysql"]
 
+        # Filter out gem-only database versions
+        postgres_version = nil if postgres_version&.include?("gem")
+        mysql_version = nil if mysql_version&.include?("gem")
+
+        # Skip projects with no matching products
+        ruby_present = ruby_version && !ruby_version.empty?
+        rails_present = rails_version && !rails_version.empty?
+        postgres_present = postgres_version && !postgres_version.empty?
+        mysql_present = mysql_version && !mysql_version.empty?
+
+        next unless ruby_present || rails_present || postgres_present || mysql_present
+
+        # Track which columns have data
+        has_ruby ||= ruby_present
+        has_rails ||= rails_present
+        has_postgres ||= postgres_present
+        has_mysql ||= mysql_present
+
         # Determine worst EOL status
         worst_status = :green
         status_text = "✓ Current"
 
-        if ruby_version && !ruby_version.empty?
+        if ruby_present
           ruby_eol = fetcher.eol_date_for("ruby", ruby_version)
           if ruby_eol
             days = days_until(ruby_eol)
             status = eol_color(days)
             worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days < 0
+            if days.negative?
               status_text = "✗ Ruby EOL"
             elsif days < 180
               status_text = "⚠ Ruby ending soon"
@@ -78,13 +99,13 @@ module Harbinger
           end
         end
 
-        if rails_version && !rails_version.empty?
+        if rails_present
           rails_eol = fetcher.eol_date_for("rails", rails_version)
           if rails_eol
             days = days_until(rails_eol)
             status = eol_color(days)
             worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days < 0
+            if days.negative?
               status_text = "✗ Rails EOL"
             elsif days < 180 && !status_text.include?("EOL")
               status_text = "⚠ Rails ending soon"
@@ -92,13 +113,13 @@ module Harbinger
           end
         end
 
-        if postgres_version && !postgres_version.empty? && !postgres_version.include?("gem")
+        if postgres_present
           postgres_eol = fetcher.eol_date_for("postgresql", postgres_version)
           if postgres_eol
             days = days_until(postgres_eol)
             status = eol_color(days)
             worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days < 0
+            if days.negative?
               status_text = "✗ PostgreSQL EOL"
             elsif days < 180 && !status_text.include?("EOL")
               status_text = "⚠ PostgreSQL ending soon"
@@ -106,13 +127,13 @@ module Harbinger
           end
         end
 
-        if mysql_version && !mysql_version.empty? && !mysql_version.include?("gem")
+        if mysql_present
           mysql_eol = fetcher.eol_date_for("mysql", mysql_version)
           if mysql_eol
             days = days_until(mysql_eol)
             status = eol_color(days)
             worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days < 0
+            if days.negative?
               status_text = "✗ MySQL EOL"
             elsif days < 180 && !status_text.include?("EOL")
               status_text = "⚠ MySQL ending soon"
@@ -120,30 +141,59 @@ module Harbinger
           end
         end
 
-        ruby_display = ruby_version && !ruby_version.empty? ? ruby_version : "-"
-        rails_display = rails_version && !rails_version.empty? ? rails_version : "-"
-        postgres_display = postgres_version && !postgres_version.empty? ? postgres_version : "-"
-        mysql_display = mysql_version && !mysql_version.empty? ? mysql_version : "-"
-
-        rows << [name, ruby_display, rails_display, postgres_display, mysql_display, colorize_status(status_text, worst_status)]
+        rows << {
+          name: name,
+          ruby: ruby_present ? ruby_version : "-",
+          rails: rails_present ? rails_version : "-",
+          postgres: postgres_present ? postgres_version : "-",
+          mysql: mysql_present ? mysql_version : "-",
+          status: colorize_status(status_text, worst_status),
+          status_raw: status_text
+        }
       end
+
+      if rows.empty?
+        say "No projects with detected versions.", :yellow
+        say "Use 'harbinger scan --save' to add projects", :cyan
+        return
+      end
+
+      say "Tracked Projects (#{rows.size})", :cyan
+      say "=" * 80, :cyan
 
       # Sort by status priority (worst first), then by name
       rows.sort_by! do |row|
-        status = row[5] # Status is now in column 5 (0-indexed)
-        priority = if status.include?("✗")
-          0
-        elsif status.include?("⚠")
-          1
-        else
-          2
-        end
-        [priority, row[0]]
+        priority = if row[:status_raw].include?("✗")
+                     0
+                   elsif row[:status_raw].include?("⚠")
+                     1
+                   else
+                     2
+                   end
+        [priority, row[:name]]
+      end
+
+      # Build dynamic headers and rows
+      headers = ["Project"]
+      headers << "Ruby" if has_ruby
+      headers << "Rails" if has_rails
+      headers << "PostgreSQL" if has_postgres
+      headers << "MySQL" if has_mysql
+      headers << "Status"
+
+      table_rows = rows.map do |row|
+        table_row = [row[:name]]
+        table_row << row[:ruby] if has_ruby
+        table_row << row[:rails] if has_rails
+        table_row << row[:postgres] if has_postgres
+        table_row << row[:mysql] if has_mysql
+        table_row << row[:status]
+        table_row
       end
 
       table = TTY::Table.new(
-        header: ["Project", "Ruby", "Rails", "PostgreSQL", "MySQL", "Status"],
-        rows: rows
+        header: headers,
+        rows: table_rows
       )
 
       puts table.render(:unicode, padding: [0, 1])
@@ -222,7 +272,8 @@ module Harbinger
           config_manager.save_project(
             name: name,
             path: project_path,
-            versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version, mysql: mysql_version }.compact
+            versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version,
+                        mysql: mysql_version }.compact
           )
         end
 
@@ -230,7 +281,7 @@ module Harbinger
       end
 
       say "\n✓ Updated #{updated_count} project(s)", :green
-      say "✓ Removed #{removed_count} project(s) with missing directories", :yellow if removed_count > 0
+      say "✓ Removed #{removed_count} project(s) with missing directories", :yellow if removed_count.positive?
       say "\nView updated projects with: harbinger show", :cyan
     end
 
@@ -274,10 +325,10 @@ module Harbinger
         say "\n" unless index == gemfile_dirs.length - 1
       end
 
-      if options[:save]
-        say "\n✓ Saved #{gemfile_dirs.length} project(s) to config", :green
-        say "View all tracked projects with: harbinger show", :cyan
-      end
+      return unless options[:save]
+
+      say "\n✓ Saved #{gemfile_dirs.length} project(s) to config", :green
+      say "View all tracked projects with: harbinger show", :cyan
     end
 
     def scan_single(project_path)
@@ -334,21 +385,15 @@ module Harbinger
         say "\nFetching EOL data...", :cyan
         fetcher = EolFetcher.new
 
-        if ruby_version
-          display_eol_info(fetcher, "Ruby", ruby_version)
-        end
+        display_eol_info(fetcher, "Ruby", ruby_version) if ruby_version
 
-        if rails_version
-          display_eol_info(fetcher, "Rails", rails_version)
-        end
+        display_eol_info(fetcher, "Rails", rails_version) if rails_version
 
         if postgres_version && !postgres_version.include?("gem")
           display_eol_info(fetcher, "PostgreSQL", postgres_version)
         end
 
-        if mysql_version && !mysql_version.include?("gem")
-          display_eol_info(fetcher, "MySQL", mysql_version)
-        end
+        display_eol_info(fetcher, "MySQL", mysql_version) if mysql_version && !mysql_version.include?("gem")
       end
 
       # Save to config if --save flag is used
@@ -361,7 +406,8 @@ module Harbinger
         config_manager.save_project(
           name: project_name,
           path: project_path,
-          versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version, mysql: mysql_version }.compact
+          versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version,
+                      mysql: mysql_version }.compact
         )
       end
     end
@@ -403,7 +449,7 @@ module Harbinger
     end
 
     def eol_color(days)
-      if days < 0
+      if days.negative?
         :red
       elsif days < 180 # < 6 months
         :yellow
@@ -413,7 +459,7 @@ module Harbinger
     end
 
     def eol_status(days)
-      if days < 0
+      if days.negative?
         "ALREADY EOL (#{days.abs} days ago)"
       elsif days < 30
         "ENDING SOON (#{days} days remaining)"
