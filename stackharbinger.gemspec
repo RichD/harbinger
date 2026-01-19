@@ -3,7 +3,7 @@
 require_relative "lib/harbinger/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "harbinger"
+  spec.name = "stackharbinger"
   spec.version = Harbinger::VERSION
   spec.authors = ["Rich Dabrowski"]
   spec.email = ["engineering@richd.net"]

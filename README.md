@@ -15,14 +15,16 @@ Harbinger is a CLI tool that scans your Ruby and Rails projects, detects version
 ## Installation
 
 ```bash
-gem install harbinger
+gem install stackharbinger
 ```
 
 Or add to your Gemfile:
 
 ```ruby
-gem 'harbinger'
+gem 'stackharbinger'
 ```
+
+The command is still `harbinger` (shorter to type).
 
 ## Usage
 
@@ -171,7 +173,7 @@ This gem is available as open source under the terms of the MIT License.
 
 - Website: [stackharbinger.com](https://stackharbinger.com)
 - GitHub: [github.com/RichD/harbinger](https://github.com/RichD/harbinger)
-- RubyGems: [rubygems.org/gems/harbinger](https://rubygems.org/gems/harbinger)
+- RubyGems: [rubygems.org/gems/stackharbinger](https://rubygems.org/gems/stackharbinger)
 
 ---
 
