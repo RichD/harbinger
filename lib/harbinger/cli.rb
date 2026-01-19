@@ -235,6 +235,21 @@ module Harbinger
       say "\nEOL data updated successfully!", :green
     end
 
+    desc "remove PROJECT", "Remove a project from tracking"
+    def remove(project_name)
+      config_manager = ConfigManager.new
+      project = config_manager.get_project(project_name)
+
+      if project
+        config_manager.remove_project(project_name)
+        say "Removed '#{project_name}' (#{project["path"]})", :green
+      else
+        say "Project '#{project_name}' not found", :yellow
+        say "\nTracked projects:", :cyan
+        config_manager.list_projects.keys.sort.each { |name| say "  #{name}" }
+      end
+    end
+
     desc "rescan", "Re-scan all tracked projects and update versions"
     option :verbose, type: :boolean, aliases: "-v", desc: "Show detailed output for each project"
     def rescan

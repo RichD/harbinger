@@ -86,6 +86,10 @@ PostgreSQL 16.11:
 ```bash
 # Show dashboard of all tracked projects
 harbinger show
+
+# Filter to specific project(s) by name or path
+harbinger show budget
+harbinger show job
 ```
 
 **Example output:**
@@ -111,6 +115,13 @@ harbinger rescan
 
 # Show detailed output for each project
 harbinger rescan --verbose
+```
+
+### Remove a project
+
+```bash
+# Remove a project from tracking
+harbinger remove my-project
 ```
 
 ### Update EOL data
