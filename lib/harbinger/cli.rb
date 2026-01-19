@@ -172,6 +172,68 @@ module Harbinger
       say "\nEOL data updated successfully!", :green
     end
 
+    desc "rescan", "Re-scan all tracked projects and update versions"
+    option :verbose, type: :boolean, aliases: "-v", desc: "Show detailed output for each project"
+    def rescan
+      config_manager = ConfigManager.new
+      projects = config_manager.list_projects
+
+      if projects.empty?
+        say "No projects tracked yet.", :yellow
+        say "Use 'harbinger scan --save' to add projects", :cyan
+        return
+      end
+
+      say "Re-scanning #{projects.size} tracked project(s)...\n\n", :cyan
+
+      updated_count = 0
+      removed_count = 0
+
+      projects.each_with_index do |(name, data), index|
+        project_path = data["path"]
+
+        unless File.directory?(project_path)
+          say "[#{index + 1}/#{projects.size}] #{name}: Path not found, removing from config", :yellow
+          config_manager.remove_project(name)
+          removed_count += 1
+          next
+        end
+
+        if options[:verbose]
+          say "=" * 60, :cyan
+          say "[#{index + 1}/#{projects.size}] Re-scanning #{name}", :cyan
+          say "=" * 60, :cyan
+          scan_single(project_path)
+        else
+          say "[#{index + 1}/#{projects.size}] #{name}...", :white
+
+          # Detect versions quietly
+          ruby_detector = Analyzers::RubyDetector.new(project_path)
+          rails_analyzer = Analyzers::RailsAnalyzer.new(project_path)
+          postgres_detector = Analyzers::PostgresDetector.new(project_path)
+          mysql_detector = Analyzers::MysqlDetector.new(project_path)
+
+          ruby_version = ruby_detector.detect
+          rails_version = rails_analyzer.detect
+          postgres_version = postgres_detector.detect
+          mysql_version = mysql_detector.detect
+
+          # Save to config
+          config_manager.save_project(
+            name: name,
+            path: project_path,
+            versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version, mysql: mysql_version }.compact
+          )
+        end
+
+        updated_count += 1
+      end
+
+      say "\n✓ Updated #{updated_count} project(s)", :green
+      say "✓ Removed #{removed_count} project(s) with missing directories", :yellow if removed_count > 0
+      say "\nView updated projects with: harbinger show", :cyan
+    end
+
     desc "version", "Show harbinger version"
     def version
       say "Harbinger version #{Harbinger::VERSION}", :cyan
