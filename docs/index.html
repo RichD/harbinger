@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harbinger - Track EOL Dates for Your Tech Stack</title>
+    <meta name="description" content="Never get caught off-guard by unsupported dependencies. Harbinger tracks End-of-Life dates for Ruby, Rails, and more.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+        <div class="max-w-6xl mx-auto px-4 py-20">
+            <h1 class="text-5xl md:text-7xl font-black mb-6">Harbinger</h1>
+            <p class="text-2xl md:text-3xl mb-8 text-blue-100">Track End-of-Life dates for your tech stack</p>
+            <p class="text-xl mb-12 text-blue-100 max-w-2xl">Never get caught off-guard by unsupported dependencies. Harbinger scans your Ruby and Rails projects and warns you before support ends.</p>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="bg-gray-900 rounded-lg p-4 font-mono text-sm">
+                    <span class="text-gray-400">$</span> <span class="text-green-400">gem install stackharbinger</span>
+                </div>
+                <a href="https://github.com/RichD/harbinger" class="inline-block bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition text-center">
+                    View on GitHub →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="max-w-6xl mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold mb-12 text-center">Features</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="text-4xl mb-4">🔍</div>
+                <h3 class="text-xl font-semibold mb-2">Auto-Detection</h3>
+                <p class="text-gray-600">Automatically detects Ruby and Rails versions from .ruby-version, Gemfile, and Gemfile.lock</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="text-4xl mb-4">📅</div>
+                <h3 class="text-xl font-semibold mb-2">EOL Data</h3>
+                <p class="text-gray-600">Fetches official EOL dates from endoflife.date with smart 24-hour caching</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="text-4xl mb-4">🎨</div>
+                <h3 class="text-xl font-semibold mb-2">Color-Coded</h3>
+                <p class="text-gray-600">Visual warnings: red for EOL, yellow for <6 months, green for safe</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="text-4xl mb-4">⚡</div>
+                <h3 class="text-xl font-semibold mb-2">Zero Config</h3>
+                <p class="text-gray-600">Just run harbinger scan - no setup or configuration required</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="text-4xl mb-4">💾</div>
+                <h3 class="text-xl font-semibold mb-2">Works Offline</h3>
+                <p class="text-gray-600">Smart caching means it works offline after initial data fetch</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="text-4xl mb-4">🧪</div>
+                <h3 class="text-xl font-semibold mb-2">Well Tested</h3>
+                <p class="text-gray-600">36 RSpec tests with 100% pass rate, built with TDD</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Section -->
+    <div class="bg-white py-16">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8">Quick Start</h2>
+
+            <div class="bg-gray-900 rounded-lg p-6 mb-8 font-mono text-sm overflow-x-auto">
+                <div class="text-gray-400"># Install</div>
+                <div class="mb-4"><span class="text-gray-400">$</span> <span class="text-green-400">gem install stackharbinger</span></div>
+
+                <div class="text-gray-400"># Scan your project</div>
+                <div class="mb-4"><span class="text-gray-400">$</span> <span class="text-green-400">harbinger scan</span></div>
+
+                <div class="text-gray-400"># Output:</div>
+                <div class="text-white">
+                    <div class="mb-2">Detected versions:</div>
+                    <div class="ml-4 text-white">Ruby:  3.2.0</div>
+                    <div class="ml-4 text-white mb-2">Rails: 7.0.8</div>
+                    <div class="mb-2">Ruby 3.2.0:</div>
+                    <div class="ml-4 text-green-400">EOL Date: 2026-03-31</div>
+                    <div class="ml-4 text-green-400 mb-2">Status:   437 days remaining</div>
+                    <div class="mb-2">Rails 7.0.8:</div>
+                    <div class="ml-4 text-red-400">EOL Date: 2025-06-01</div>
+                    <div class="ml-4 text-red-400">Status:   ALREADY EOL</div>
+                </div>
+            </div>
+
+            <div class="prose max-w-none">
+                <h3 class="text-2xl font-semibold mb-4">Commands</h3>
+                <ul class="space-y-3 text-gray-700">
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger scan [PATH]</code> - Scan a project and show EOL status</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger update</code> - Force refresh EOL data from API</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger version</code> - Show harbinger version</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Roadmap Section -->
+    <div class="max-w-6xl mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold mb-8 text-center">Roadmap</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-xl font-semibold mb-4 text-green-600">✅ V0.1.0 (Current)</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li>• Ruby & Rails detection</li>
+                    <li>• EOL data fetching</li>
+                    <li>• CLI with color output</li>
+                    <li>• Smart caching</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold mb-4 text-blue-600">📋 V0.2.0 (Planned)</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li>• Dashboard view</li>
+                    <li>• Config management</li>
+                    <li>• PostgreSQL detection</li>
+                    <li>• MySQL detection</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold mb-4 text-purple-600">🚀 V1.0 (Future)</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li>• Python support</li>
+                    <li>• Node.js support</li>
+                    <li>• Go & Rust support</li>
+                    <li>• Homebrew distribution</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Links Section -->
+    <div class="bg-gray-900 text-white py-12">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <div class="flex flex-col sm:flex-row justify-center gap-6 mb-8">
+                <a href="https://github.com/RichD/harbinger" class="bg-white text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                    GitHub
+                </a>
+                <a href="https://rubygems.org/gems/stackharbinger" class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition">
+                    RubyGems
+                </a>
+                <a href="https://github.com/RichD/harbinger/blob/main/README.md" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Documentation
+                </a>
+            </div>
+            <p class="text-gray-400 text-sm">
+                Built with ❤️ using Ruby and Thor | EOL data from <a href="https://endoflife.date" class="underline hover:text-white">endoflife.date</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
