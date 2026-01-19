@@ -6,6 +6,9 @@ require "tty-table"
 require_relative "version"
 require "harbinger/analyzers/ruby_detector"
 require "harbinger/analyzers/rails_analyzer"
+require "harbinger/analyzers/database_detector"
+require "harbinger/analyzers/postgres_detector"
+require "harbinger/analyzers/mysql_detector"
 require "harbinger/eol_fetcher"
 require "harbinger/config_manager"
 
@@ -179,33 +182,51 @@ module Harbinger
       # Detect versions
       ruby_detector = Analyzers::RubyDetector.new(project_path)
       rails_analyzer = Analyzers::RailsAnalyzer.new(project_path)
+      postgres_detector = Analyzers::PostgresDetector.new(project_path)
+      mysql_detector = Analyzers::MysqlDetector.new(project_path)
 
       ruby_version = ruby_detector.detect
       rails_version = rails_analyzer.detect
+      postgres_version = postgres_detector.detect
+      mysql_version = mysql_detector.detect
 
       ruby_present = ruby_detector.ruby_detected?
       rails_present = rails_analyzer.rails_detected?
+      postgres_present = postgres_detector.database_detected?
+      mysql_present = mysql_detector.database_detected?
 
       # Display results
       say "\nDetected versions:", :green
       if ruby_version
-        say "  Ruby:  #{ruby_version}", :white
+        say "  Ruby:       #{ruby_version}", :white
       elsif ruby_present
-        say "  Ruby:  Present (version not specified - add .ruby-version or ruby declaration in Gemfile)", :yellow
+        say "  Ruby:       Present (version not specified - add .ruby-version or ruby declaration in Gemfile)", :yellow
       else
-        say "  Ruby:  Not a Ruby project", :red
+        say "  Ruby:       Not a Ruby project", :red
       end
 
       if rails_version
-        say "  Rails: #{rails_version}", :white
+        say "  Rails:      #{rails_version}", :white
       elsif rails_present
-        say "  Rails: Present (version not found in Gemfile.lock)", :yellow
+        say "  Rails:      Present (version not found in Gemfile.lock)", :yellow
       else
-        say "  Rails: Not detected", :yellow
+        say "  Rails:      Not detected", :yellow
+      end
+
+      if postgres_version
+        say "  PostgreSQL: #{postgres_version}", :white
+      elsif postgres_present
+        say "  PostgreSQL: Present (version not detected)", :yellow
+      end
+
+      if mysql_version
+        say "  MySQL:      #{mysql_version}", :white
+      elsif mysql_present
+        say "  MySQL:      Present (version not detected)", :yellow
       end
 
       # Fetch and display EOL dates
-      if ruby_version || rails_version
+      if ruby_version || rails_version || postgres_version || mysql_version
         say "\nFetching EOL data...", :cyan
         fetcher = EolFetcher.new
 
@@ -216,11 +237,19 @@ module Harbinger
         if rails_version
           display_eol_info(fetcher, "Rails", rails_version)
         end
+
+        if postgres_version && !postgres_version.include?("gem")
+          display_eol_info(fetcher, "PostgreSQL", postgres_version)
+        end
+
+        if mysql_version && !mysql_version.include?("gem")
+          display_eol_info(fetcher, "MySQL", mysql_version)
+        end
       end
 
       # Save to config if --save flag is used
       if options[:save] && !options[:recursive]
-        save_to_config(project_path, ruby_version, rails_version)
+        save_to_config(project_path, ruby_version, rails_version, postgres_version, mysql_version)
       elsif options[:save] && options[:recursive]
         # In recursive mode, save without the confirmation message for each project
         config_manager = ConfigManager.new
@@ -228,19 +257,19 @@ module Harbinger
         config_manager.save_project(
           name: project_name,
           path: project_path,
-          versions: { ruby: ruby_version, rails: rails_version }.compact
+          versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version, mysql: mysql_version }.compact
         )
       end
     end
 
-    def save_to_config(project_path, ruby_version, rails_version)
+    def save_to_config(project_path, ruby_version, rails_version, postgres_version = nil, mysql_version = nil)
       config_manager = ConfigManager.new
       project_name = File.basename(project_path)
 
       config_manager.save_project(
         name: project_name,
         path: project_path,
-        versions: { ruby: ruby_version, rails: rails_version }.compact
+        versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version, mysql: mysql_version }.compact
       )
 
       say "\n✓ Saved to config as '#{project_name}'", :green
