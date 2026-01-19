@@ -60,9 +60,19 @@
                 <p class="text-gray-600">Smart caching means it works offline after initial data fetch</p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="text-4xl mb-4">📊</div>
+                <h3 class="text-xl font-semibold mb-2">Dashboard View</h3>
+                <p class="text-gray-600">Track multiple projects and see EOL status at a glance with harbinger show</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="text-4xl mb-4">🔄</div>
+                <h3 class="text-xl font-semibold mb-2">Bulk Scanning</h3>
+                <p class="text-gray-600">Recursively scan entire directories to find and track all your projects</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
                 <div class="text-4xl mb-4">🧪</div>
                 <h3 class="text-xl font-semibold mb-2">Well Tested</h3>
-                <p class="text-gray-600">36 RSpec tests with 100% pass rate, built with TDD</p>
+                <p class="text-gray-600">52 RSpec tests with 100% pass rate, built with TDD</p>
             </div>
         </div>
     </div>
@@ -96,7 +106,10 @@
             <div class="prose max-w-none">
                 <h3 class="text-2xl font-semibold mb-4">Commands</h3>
                 <ul class="space-y-3 text-gray-700">
-                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger scan [PATH]</code> - Scan a project and show EOL status</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger scan --path [PATH]</code> - Scan a project and show EOL status</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger scan --save</code> - Save project for tracking</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger scan --recursive</code> - Scan all projects in a directory</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger show</code> - View dashboard of all tracked projects</li>
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger update</code> - Force refresh EOL data from API</li>
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger version</code> - Show harbinger version</li>
                 </ul>
@@ -109,21 +122,21 @@
         <h2 class="text-3xl font-bold mb-8 text-center">Roadmap</h2>
         <div class="grid md:grid-cols-3 gap-8">
             <div>
-                <h3 class="text-xl font-semibold mb-4 text-green-600">✅ V0.1.0 (Current)</h3>
+                <h3 class="text-xl font-semibold mb-4 text-green-600">✅ V0.2.0 (Current)</h3>
                 <ul class="space-y-2 text-gray-600">
-                    <li>• Ruby & Rails detection</li>
-                    <li>• EOL data fetching</li>
-                    <li>• CLI with color output</li>
-                    <li>• Smart caching</li>
+                    <li>• Dashboard view</li>
+                    <li>• Project tracking</li>
+                    <li>• Recursive scanning</li>
+                    <li>• Config management</li>
                 </ul>
             </div>
             <div>
-                <h3 class="text-xl font-semibold mb-4 text-blue-600">📋 V0.2.0 (Planned)</h3>
+                <h3 class="text-xl font-semibold mb-4 text-blue-600">📋 V0.3.0 (Planned)</h3>
                 <ul class="space-y-2 text-gray-600">
-                    <li>• Dashboard view</li>
-                    <li>• Config management</li>
                     <li>• PostgreSQL detection</li>
                     <li>• MySQL detection</li>
+                    <li>• Rescan command</li>
+                    <li>• Export to JSON/CSV</li>
                 </ul>
             </div>
             <div>
