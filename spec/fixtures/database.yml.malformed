@@ -1,0 +1,8 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  this is not valid yaml: [
+    missing closing bracket
+
+development:
+  <<: *default
