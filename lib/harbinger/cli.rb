@@ -156,7 +156,7 @@ module Harbinger
       say "Updating EOL data...", :cyan
 
       fetcher = EolFetcher.new
-      products = %w[ruby rails]
+      products = %w[ruby rails postgresql mysql]
 
       products.each do |product|
         say "Fetching #{product}...", :white
