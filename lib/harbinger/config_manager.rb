@@ -12,16 +12,14 @@ module Harbinger
       FileUtils.mkdir_p(@config_dir)
     end
 
-    def save_project(name:, path:, ruby: nil, rails: nil)
+    def save_project(name:, path:, versions: {})
       config = load_config
       config["projects"] ||= {}
 
       config["projects"][name] = {
         "path" => path,
-        "ruby" => ruby,
-        "rails" => rails,
         "last_scanned" => Time.now.iso8601
-      }
+      }.merge(versions.transform_keys(&:to_s))
 
       write_config(config)
     end

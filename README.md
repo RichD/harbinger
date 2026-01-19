@@ -10,6 +10,8 @@ Harbinger is a CLI tool that scans your Ruby and Rails projects, detects version
 - 📅 **Fetches EOL data** from [endoflife.date](https://endoflife.date)
 - 🎨 **Color-coded warnings** (red: already EOL, yellow: <6 months, green: safe)
 - ⚡ **Smart caching** (24-hour cache, works offline after first fetch)
+- 📊 **Track multiple projects** with `--save` and view dashboard with `harbinger show`
+- 🔄 **Bulk scanning** with `--recursive` flag to scan entire directories
 - 🚀 **Zero configuration** - just run `harbinger scan`
 
 ## Installation
@@ -35,7 +37,13 @@ The command is still `harbinger` (shorter to type).
 harbinger scan
 
 # Scan specific project
-harbinger scan ~/Projects/my-rails-app
+harbinger scan --path ~/Projects/my-rails-app
+
+# Save project for tracking
+harbinger scan --save
+
+# Scan all Ruby projects in a directory recursively
+harbinger scan --path ~/Projects --recursive --save
 ```
 
 **Example output:**
@@ -56,6 +64,28 @@ Ruby 3.2.0:
 Rails 7.0.8:
   EOL Date: 2025-06-01
   Status:   ALREADY EOL (474 days ago)
+```
+
+### View tracked projects
+
+```bash
+# Show dashboard of all tracked projects
+harbinger show
+```
+
+**Example output:**
+
+```
+Tracked Projects (10)
+================================================================================
+┌───────────────────┬───────┬──────────┬─────────────┐
+│ Project           │ Ruby  │ Rails    │ Status      │
+├───────────────────┼───────┼──────────┼─────────────┤
+│ ledger            │ 3.3.0 │ 6.1.7.10 │ ✗ Rails EOL │
+│ option_tracker    │ 3.3.0 │ 7.0.8.7  │ ✗ Rails EOL │
+│ CarCal            │ -     │ 8.0.2    │ ✓ Current   │
+│ job_tracker       │ 3.3.0 │ 8.0.4    │ ✓ Current   │
+└───────────────────┴───────┴──────────┴─────────────┘
 ```
 
 ### Update EOL data
@@ -124,17 +154,17 @@ bundle exec exe/harbinger scan .
 
 ## Roadmap
 
-### V0.1.0 (Beta) - Current
-- ✅ Ruby and Rails version detection
-- ✅ EOL data fetching and caching
-- ✅ CLI with scan and update commands
-- ✅ Color-coded status display
+### V0.2.0 - Current
+- ✅ Dashboard: `harbinger show` to see all tracked projects
+- ✅ Config management: Save and track multiple projects with `--save`
+- ✅ Recursive scanning: `--recursive` flag to scan multiple projects at once
+- ✅ Enhanced project tracking with YAML config
 
-### V0.2.0 - Planned
-- 📊 Dashboard: `harbinger show` to see all tracked projects
-- 💾 Config management: Save and track multiple projects
+### V0.3.0 - Planned
 - 🐘 PostgreSQL version detection
 - 🗄️ MySQL version detection
+- 🔄 Rescan command to update all tracked projects
+- 📋 Export reports to JSON/CSV
 
 ### V1.0 - Future
 - 🐍 Python support (pyproject.toml, requirements.txt)

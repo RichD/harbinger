@@ -23,8 +23,7 @@ RSpec.describe Harbinger::ConfigManager do
       manager.save_project(
         name: "my-app",
         path: "/Users/test/Projects/my-app",
-        ruby: "3.2.0",
-        rails: "7.0.8"
+        versions: { ruby: "3.2.0", rails: "7.0.8" }
       )
 
       config = YAML.load_file(config_file)
@@ -38,8 +37,8 @@ RSpec.describe Harbinger::ConfigManager do
     end
 
     it "updates an existing project entry" do
-      manager.save_project(name: "my-app", path: "/path", ruby: "3.1.0", rails: "7.0.0")
-      manager.save_project(name: "my-app", path: "/path", ruby: "3.2.0", rails: "7.1.0")
+      manager.save_project(name: "my-app", path: "/path", versions: { ruby: "3.1.0", rails: "7.0.0" })
+      manager.save_project(name: "my-app", path: "/path", versions: { ruby: "3.2.0", rails: "7.1.0" })
 
       config = YAML.load_file(config_file)
       expect(config["projects"]["my-app"]["ruby"]).to eq("3.2.0")
@@ -47,7 +46,7 @@ RSpec.describe Harbinger::ConfigManager do
     end
 
     it "handles nil values gracefully" do
-      manager.save_project(name: "my-app", path: "/path", ruby: "3.2.0", rails: nil)
+      manager.save_project(name: "my-app", path: "/path", versions: { ruby: "3.2.0", rails: nil })
 
       config = YAML.load_file(config_file)
       expect(config["projects"]["my-app"]["ruby"]).to eq("3.2.0")
@@ -57,14 +56,14 @@ RSpec.describe Harbinger::ConfigManager do
     it "creates config file if it doesn't exist" do
       expect(File.exist?(config_file)).to be false
 
-      manager.save_project(name: "my-app", path: "/path", ruby: "3.2.0")
+      manager.save_project(name: "my-app", path: "/path", versions: { ruby: "3.2.0" })
 
       expect(File.exist?(config_file)).to be true
     end
 
     it "preserves existing projects when adding new ones" do
-      manager.save_project(name: "app1", path: "/path1", ruby: "3.1.0")
-      manager.save_project(name: "app2", path: "/path2", ruby: "3.2.0")
+      manager.save_project(name: "app1", path: "/path1", versions: { ruby: "3.1.0" })
+      manager.save_project(name: "app2", path: "/path2", versions: { ruby: "3.2.0" })
 
       projects = manager.list_projects
       expect(projects.keys).to contain_exactly("app1", "app2")
@@ -74,8 +73,8 @@ RSpec.describe Harbinger::ConfigManager do
   describe "#list_projects" do
     context "when config file exists with projects" do
       before do
-        manager.save_project(name: "app1", path: "/path1", ruby: "3.1.0", rails: "7.0.0")
-        manager.save_project(name: "app2", path: "/path2", ruby: "3.2.0", rails: nil)
+        manager.save_project(name: "app1", path: "/path1", versions: { ruby: "3.1.0", rails: "7.0.0" })
+        manager.save_project(name: "app2", path: "/path2", versions: { ruby: "3.2.0", rails: nil })
       end
 
       it "returns all projects" do
@@ -122,7 +121,7 @@ RSpec.describe Harbinger::ConfigManager do
 
   describe "#get_project" do
     before do
-      manager.save_project(name: "my-app", path: "/path", ruby: "3.2.0", rails: "7.0.8")
+      manager.save_project(name: "my-app", path: "/path", versions: { ruby: "3.2.0", rails: "7.0.8" })
     end
 
     it "returns project by name" do
@@ -141,8 +140,8 @@ RSpec.describe Harbinger::ConfigManager do
 
   describe "#remove_project" do
     before do
-      manager.save_project(name: "app1", path: "/path1", ruby: "3.1.0")
-      manager.save_project(name: "app2", path: "/path2", ruby: "3.2.0")
+      manager.save_project(name: "app1", path: "/path1", versions: { ruby: "3.1.0" })
+      manager.save_project(name: "app2", path: "/path2", versions: { ruby: "3.2.0" })
     end
 
     it "removes the specified project" do
@@ -163,8 +162,8 @@ RSpec.describe Harbinger::ConfigManager do
     end
 
     it "returns correct count" do
-      manager.save_project(name: "app1", path: "/path1", ruby: "3.1.0")
-      manager.save_project(name: "app2", path: "/path2", ruby: "3.2.0")
+      manager.save_project(name: "app1", path: "/path1", versions: { ruby: "3.1.0" })
+      manager.save_project(name: "app2", path: "/path2", versions: { ruby: "3.2.0" })
 
       expect(manager.project_count).to eq(2)
     end
