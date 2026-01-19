@@ -2,16 +2,17 @@
 
 **Track End-of-Life dates for your tech stack and stay ahead of deprecations.**
 
-Harbinger is a CLI tool that scans your Ruby and Rails projects, detects versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
+Harbinger is a CLI tool that scans your Ruby, Rails, PostgreSQL, and MySQL versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
 
 ## Features
 
-- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, and `Gemfile.lock`
+- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, and `config/database.yml`
+- 🐘 **Database detection** for PostgreSQL and MySQL (mysql2/trilogy adapters)
 - 📅 **Fetches EOL data** from [endoflife.date](https://endoflife.date)
 - 🎨 **Color-coded warnings** (red: already EOL, yellow: <6 months, green: safe)
 - ⚡ **Smart caching** (24-hour cache, works offline after first fetch)
 - 📊 **Track multiple projects** with `--save` and view dashboard with `harbinger show`
-- 🔄 **Bulk scanning** with `--recursive` flag to scan entire directories
+- 🔄 **Bulk operations** with `--recursive` scan and `rescan` command
 - 🚀 **Zero configuration** - just run `harbinger scan`
 
 ## Installation
@@ -61,8 +62,9 @@ harbinger scan --path ~/Projects --recursive --save
 Scanning /Users/you/Projects/my-app...
 
 Detected versions:
-  Ruby:  3.2.0
-  Rails: 7.0.8
+  Ruby:       3.2.0
+  Rails:      7.0.8
+  PostgreSQL: 16.11
 
 Fetching EOL data...
 
@@ -73,6 +75,10 @@ Ruby 3.2.0:
 Rails 7.0.8:
   EOL Date: 2025-06-01
   Status:   ALREADY EOL (474 days ago)
+
+PostgreSQL 16.11:
+  EOL Date: 2028-11-09
+  Status:   1026 days remaining
 ```
 
 ### View tracked projects
@@ -87,14 +93,24 @@ harbinger show
 ```
 Tracked Projects (10)
 ================================================================================
-┌───────────────────┬───────┬──────────┬─────────────┐
-│ Project           │ Ruby  │ Rails    │ Status      │
-├───────────────────┼───────┼──────────┼─────────────┤
-│ ledger            │ 3.3.0 │ 6.1.7.10 │ ✗ Rails EOL │
-│ option_tracker    │ 3.3.0 │ 7.0.8.7  │ ✗ Rails EOL │
-│ CarCal            │ -     │ 8.0.2    │ ✓ Current   │
-│ job_tracker       │ 3.3.0 │ 8.0.4    │ ✓ Current   │
-└───────────────────┴───────┴──────────┴─────────────┘
+┌───────────────────┬───────┬──────────┬────────────┬───────┬─────────────┐
+│ Project           │ Ruby  │ Rails    │ PostgreSQL │ MySQL │ Status      │
+├───────────────────┼───────┼──────────┼────────────┼───────┼─────────────┤
+│ ledger            │ 3.3.0 │ 6.1.7.10 │ -          │ -     │ ✗ Rails EOL │
+│ option_tracker    │ 3.3.0 │ 7.0.8.7  │ -          │ -     │ ✗ Rails EOL │
+│ CarCal            │ -     │ 8.0.2    │ -          │ -     │ ✓ Current   │
+│ job_tracker       │ 3.3.0 │ 8.0.4    │ 16.11      │ -     │ ✓ Current   │
+└───────────────────┴───────┴──────────┴────────────┴───────┴─────────────┘
+```
+
+### Re-scan all tracked projects
+
+```bash
+# Update all tracked projects with latest versions
+harbinger rescan
+
+# Show detailed output for each project
+harbinger rescan --verbose
 ```
 
 ### Update EOL data
@@ -115,6 +131,8 @@ harbinger version
 1. **Detection**: Harbinger looks for version info in your project:
    - Ruby: `.ruby-version`, `Gemfile` (`ruby "x.x.x"`), `Gemfile.lock` (RUBY VERSION)
    - Rails: `Gemfile.lock` (rails gem)
+   - PostgreSQL: `config/database.yml` (adapter check) + `psql --version` or `pg` gem
+   - MySQL: `config/database.yml` (mysql2/trilogy adapter) + `mysql --version` or gem version
 
 2. **EOL Data**: Fetches official EOL dates from [endoflife.date](https://endoflife.date) API
 
@@ -138,6 +156,22 @@ Ruby:  Present (version not specified - add .ruby-version or ruby declaration in
 ### Rails Detection
 
 Parses `Gemfile.lock` for the rails gem version.
+
+### PostgreSQL Detection
+
+1. Checks `config/database.yml` for `adapter: postgresql`
+2. Tries `psql --version` for local databases (skips for remote hosts)
+3. Falls back to `pg` gem version from `Gemfile.lock`
+
+**Note**: For remote databases (AWS RDS, etc.), shows gem version since shell command would give local client version, not server version.
+
+### MySQL Detection
+
+1. Checks `config/database.yml` for `adapter: mysql2` or `adapter: trilogy`
+2. Tries `mysql --version` or `mysqld --version` for local databases
+3. Falls back to `mysql2` or `trilogy` gem version from `Gemfile.lock`
+
+**Supported adapters**: `mysql2` (traditional) and `trilogy` (Rails 7.1+)
 
 ## Requirements
 
@@ -163,18 +197,18 @@ bundle exec exe/harbinger scan .
 
 ## Roadmap
 
-### V0.2.0 - Current
-- ✅ Dashboard: `harbinger show` to see all tracked projects
-- ✅ Config management: Save and track multiple projects with `--save`
-- ✅ Recursive scanning: `--recursive` flag to scan multiple projects at once
-- ✅ Homebrew distribution: `brew install stackharbinger`
-- ✅ Enhanced project tracking with YAML config
+### V0.3.0 - Current
+- ✅ PostgreSQL version detection with local/remote database handling
+- ✅ MySQL version detection (mysql2 and trilogy adapters)
+- ✅ Rescan command to update all tracked projects
+- ✅ Enhanced dashboard with database columns
+- ✅ EOL tracking for PostgreSQL and MySQL
 
-### V0.3.0 - Planned
-- 🐘 PostgreSQL version detection
-- 🗄️ MySQL version detection
-- 🔄 Rescan command to update all tracked projects
+### V0.4.0 - Planned
 - 📋 Export reports to JSON/CSV
+- 🐳 Docker Compose database version detection
+- 🔴 Redis version detection
+- 🍃 MongoDB version detection
 
 ### V1.0 - Future
 - 🐍 Python support (pyproject.toml, requirements.txt)
