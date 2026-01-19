@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "English"
 require "yaml"
 
 module Harbinger
@@ -17,7 +18,11 @@ module Harbinger
       def detect
         return nil unless database_detected?
 
-        # Try shell command first (actual database version)
+        # Try docker-compose.yml first (most accurate for Docker-based projects)
+        version = detect_from_docker_compose
+        return version if version
+
+        # Try shell command (actual database version for non-Docker setups)
         version = detect_from_shell
         return version if version
 
@@ -68,6 +73,11 @@ module Harbinger
         raise NotImplementedError, "Subclasses must implement detect_from_shell"
       end
 
+      # Optional method - subclasses can override to detect from docker-compose.yml
+      def detect_from_docker_compose
+        nil
+      end
+
       # Abstract method - must be implemented by subclasses
       # Detects version from Gemfile.lock gem version
       def detect_from_gemfile_lock
@@ -81,7 +91,7 @@ module Harbinger
 
         content = File.read(database_yml_path)
         YAML.safe_load(content, aliases: true)
-      rescue Psych::SyntaxError, StandardError
+      rescue StandardError
         nil
       end
 
@@ -112,7 +122,7 @@ module Harbinger
       # Execute shell command safely
       def execute_command(command)
         output = `#{command} 2>&1`.strip
-        return nil unless $?.success?
+        return nil unless $CHILD_STATUS.success?
 
         output
       rescue StandardError

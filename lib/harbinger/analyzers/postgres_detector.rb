@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "database_detector"
+require_relative "docker_compose_detector"
 
 module Harbinger
   module Analyzers
@@ -10,6 +11,11 @@ module Harbinger
 
       def adapter_name
         "postgresql"
+      end
+
+      def detect_from_docker_compose
+        docker = DockerComposeDetector.new(project_path)
+        docker.image_version("postgres")
       end
 
       def detect_from_shell

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "database_detector"
+require_relative "docker_compose_detector"
 
 module Harbinger
   module Analyzers
@@ -10,7 +11,13 @@ module Harbinger
       protected
 
       def adapter_name
-        ["mysql2", "trilogy"]
+        %w[mysql2 trilogy]
+      end
+
+      def detect_from_docker_compose
+        docker = DockerComposeDetector.new(project_path)
+        # Try mysql first, then mariadb
+        docker.image_version("mysql") || docker.image_version("mariadb")
       end
 
       def detect_from_shell

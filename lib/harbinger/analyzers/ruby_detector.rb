@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "docker_compose_detector"
+
 module Harbinger
   module Analyzers
     class RubyDetector
@@ -10,7 +12,8 @@ module Harbinger
       def detect
         detect_from_ruby_version ||
           detect_from_gemfile ||
-          detect_from_gemfile_lock
+          detect_from_gemfile_lock ||
+          detect_from_dockerfile
       end
 
       def ruby_detected?
@@ -60,6 +63,11 @@ module Harbinger
         version = version_string.sub(/^ruby-/, "")
         # Remove patch level suffix (e.g., "p223")
         version.sub(/p\d+$/, "")
+      end
+
+      def detect_from_dockerfile
+        docker = DockerComposeDetector.new(project_path)
+        docker.ruby_version_from_dockerfile
       end
     end
   end
