@@ -9,6 +9,8 @@ require "harbinger/analyzers/rails_analyzer"
 require "harbinger/analyzers/database_detector"
 require "harbinger/analyzers/postgres_detector"
 require "harbinger/analyzers/mysql_detector"
+require "harbinger/analyzers/redis_detector"
+require "harbinger/analyzers/mongo_detector"
 require "harbinger/eol_fetcher"
 require "harbinger/config_manager"
 
@@ -70,30 +72,40 @@ module Harbinger
       has_rails = false
       has_postgres = false
       has_mysql = false
+      has_redis = false
+      has_mongo = false
 
       projects.each do |name, data|
         ruby_version = data["ruby"]
         rails_version = data["rails"]
         postgres_version = data["postgres"]
         mysql_version = data["mysql"]
+        redis_version = data["redis"]
+        mongo_version = data["mongo"]
 
         # Filter out gem-only database versions
         postgres_version = nil if postgres_version&.include?("gem")
         mysql_version = nil if mysql_version&.include?("gem")
+        redis_version = nil if redis_version&.include?("gem")
+        mongo_version = nil if mongo_version&.include?("gem")
 
         # Skip projects with no matching products
         ruby_present = ruby_version && !ruby_version.empty?
         rails_present = rails_version && !rails_version.empty?
         postgres_present = postgres_version && !postgres_version.empty?
         mysql_present = mysql_version && !mysql_version.empty?
+        redis_present = redis_version && !redis_version.empty?
+        mongo_present = mongo_version && !mongo_version.empty?
 
-        next unless ruby_present || rails_present || postgres_present || mysql_present
+        next unless ruby_present || rails_present || postgres_present || mysql_present || redis_present || mongo_present
 
         # Track which columns have data
         has_ruby ||= ruby_present
         has_rails ||= rails_present
         has_postgres ||= postgres_present
         has_mysql ||= mysql_present
+        has_redis ||= redis_present
+        has_mongo ||= mongo_present
 
         # Determine worst EOL status
         worst_status = :green
@@ -155,6 +167,34 @@ module Harbinger
           end
         end
 
+        if redis_present
+          redis_eol = fetcher.eol_date_for("redis", redis_version)
+          if redis_eol
+            days = days_until(redis_eol)
+            status = eol_color(days)
+            worst_status = status if status_priority(status) > status_priority(worst_status)
+            if days.negative?
+              status_text = "✗ Redis EOL"
+            elsif days < 180 && !status_text.include?("EOL")
+              status_text = "⚠ Redis ending soon"
+            end
+          end
+        end
+
+        if mongo_present
+          mongo_eol = fetcher.eol_date_for("mongodb", mongo_version)
+          if mongo_eol
+            days = days_until(mongo_eol)
+            status = eol_color(days)
+            worst_status = status if status_priority(status) > status_priority(worst_status)
+            if days.negative?
+              status_text = "✗ MongoDB EOL"
+            elsif days < 180 && !status_text.include?("EOL")
+              status_text = "⚠ MongoDB ending soon"
+            end
+          end
+        end
+
         rows << {
           name: name,
           path: File.dirname(data["path"] || ""),
@@ -162,6 +202,8 @@ module Harbinger
           rails: rails_present ? rails_version : "-",
           postgres: postgres_present ? postgres_version : "-",
           mysql: mysql_present ? mysql_version : "-",
+          redis: redis_present ? redis_version : "-",
+          mongo: mongo_present ? mongo_version : "-",
           status: colorize_status(status_text, worst_status),
           status_raw: status_text
         }
@@ -195,6 +237,8 @@ module Harbinger
       headers << "Rails" if has_rails
       headers << "PostgreSQL" if has_postgres
       headers << "MySQL" if has_mysql
+      headers << "Redis" if has_redis
+      headers << "MongoDB" if has_mongo
       headers << "Status"
 
       table_rows = rows.map do |row|
@@ -204,6 +248,8 @@ module Harbinger
         table_row << row[:rails] if has_rails
         table_row << row[:postgres] if has_postgres
         table_row << row[:mysql] if has_mysql
+        table_row << row[:redis] if has_redis
+        table_row << row[:mongo] if has_mongo
         table_row << row[:status]
         table_row
       end
@@ -223,7 +269,7 @@ module Harbinger
       say "Updating EOL data...", :cyan
 
       fetcher = EolFetcher.new
-      products = %w[ruby rails postgresql mysql]
+      products = %w[ruby rails postgresql mysql redis mongodb]
 
       products.each do |product|
         say "Fetching #{product}...", :white
@@ -294,18 +340,22 @@ module Harbinger
           rails_analyzer = Analyzers::RailsAnalyzer.new(project_path)
           postgres_detector = Analyzers::PostgresDetector.new(project_path)
           mysql_detector = Analyzers::MysqlDetector.new(project_path)
+          redis_detector = Analyzers::RedisDetector.new(project_path)
+          mongo_detector = Analyzers::MongoDetector.new(project_path)
 
           ruby_version = ruby_detector.detect
           rails_version = rails_analyzer.detect
           postgres_version = postgres_detector.detect
           mysql_version = mysql_detector.detect
+          redis_version = redis_detector.detect
+          mongo_version = mongo_detector.detect
 
           # Save to config
           config_manager.save_project(
             name: name,
             path: project_path,
             versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version,
-                        mysql: mysql_version }.compact
+                        mysql: mysql_version, redis: redis_version, mongo: mongo_version }.compact
           )
         end
 
@@ -371,16 +421,22 @@ module Harbinger
       rails_analyzer = Analyzers::RailsAnalyzer.new(project_path)
       postgres_detector = Analyzers::PostgresDetector.new(project_path)
       mysql_detector = Analyzers::MysqlDetector.new(project_path)
+      redis_detector = Analyzers::RedisDetector.new(project_path)
+      mongo_detector = Analyzers::MongoDetector.new(project_path)
 
       ruby_version = ruby_detector.detect
       rails_version = rails_analyzer.detect
       postgres_version = postgres_detector.detect
       mysql_version = mysql_detector.detect
+      redis_version = redis_detector.detect
+      mongo_version = mongo_detector.detect
 
       ruby_present = ruby_detector.ruby_detected?
       rails_present = rails_analyzer.rails_detected?
       postgres_present = postgres_detector.database_detected?
       mysql_present = mysql_detector.database_detected?
+      redis_present = redis_detector.redis_detected?
+      mongo_present = mongo_detector.mongo_detected?
 
       # Display results
       say "\nDetected versions:", :green
@@ -412,8 +468,20 @@ module Harbinger
         say "  MySQL:      Present (version not detected)", :yellow
       end
 
+      if redis_version
+        say "  Redis:      #{redis_version}", :white
+      elsif redis_present
+        say "  Redis:      Present (version not detected)", :yellow
+      end
+
+      if mongo_version
+        say "  MongoDB:    #{mongo_version}", :white
+      elsif mongo_present
+        say "  MongoDB:    Present (version not detected)", :yellow
+      end
+
       # Fetch and display EOL dates
-      if ruby_version || rails_version || postgres_version || mysql_version
+      if ruby_version || rails_version || postgres_version || mysql_version || redis_version || mongo_version
         say "\nFetching EOL data...", :cyan
         fetcher = EolFetcher.new
 
@@ -426,11 +494,16 @@ module Harbinger
         end
 
         display_eol_info(fetcher, "MySQL", mysql_version) if mysql_version && !mysql_version.include?("gem")
+
+        display_eol_info(fetcher, "Redis", redis_version) if redis_version && !redis_version.include?("gem")
+
+        display_eol_info(fetcher, "MongoDB", mongo_version) if mongo_version && !mongo_version.include?("gem")
       end
 
       # Save to config if --save flag is used
       if options[:save] && !options[:recursive]
-        save_to_config(project_path, ruby_version, rails_version, postgres_version, mysql_version)
+        save_project_to_config(project_path, ruby_version, rails_version, postgres_version, mysql_version,
+                               redis_version, mongo_version)
       elsif options[:save] && options[:recursive]
         # In recursive mode, save without the confirmation message for each project
         config_manager = ConfigManager.new
@@ -439,19 +512,21 @@ module Harbinger
           name: project_name,
           path: project_path,
           versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version,
-                      mysql: mysql_version }.compact
+                      mysql: mysql_version, redis: redis_version, mongo: mongo_version }.compact
         )
       end
     end
 
-    def save_to_config(project_path, ruby_version, rails_version, postgres_version = nil, mysql_version = nil)
+    def save_project_to_config(project_path, ruby_version, rails_version, postgres_version, mysql_version,
+                               redis_version, mongo_version)
       config_manager = ConfigManager.new
       project_name = File.basename(project_path)
 
       config_manager.save_project(
         name: project_name,
         path: project_path,
-        versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version, mysql: mysql_version }.compact
+        versions: { ruby: ruby_version, rails: rails_version, postgres: postgres_version,
+                    mysql: mysql_version, redis: redis_version, mongo: mongo_version }.compact
       )
 
       say "\n✓ Saved to config as '#{project_name}'", :green
