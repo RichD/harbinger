@@ -62,8 +62,8 @@
             </div>
             <div class="bg-white p-6 rounded-lg shadow-sm">
                 <div class="text-4xl mb-4">📊</div>
-                <h3 class="text-xl font-semibold mb-2">Smart Dashboard</h3>
-                <p class="text-gray-600">Dynamic columns show only relevant data - columns and projects without matches are hidden automatically</p>
+                <h3 class="text-xl font-semibold mb-2">Ecosystem Grouping</h3>
+                <p class="text-gray-600">Projects organized by language ecosystem (Ruby, Python, Node.js, Rust) with only relevant components displayed</p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-sm">
                 <div class="text-4xl mb-4">🔄</div>
@@ -109,7 +109,49 @@
             </div>
 
             <div class="prose max-w-none">
-                <h3 class="text-2xl font-semibold mb-4">Commands</h3>
+                <h3 class="text-2xl font-semibold mb-4">Dashboard with Ecosystem Grouping</h3>
+                <p class="text-gray-600 mb-4">Projects are organized by their primary programming language ecosystem, showing only relevant components:</p>
+
+                <div class="bg-gray-900 rounded-lg p-6 font-mono text-xs overflow-x-auto mb-8">
+                    <div class="text-gray-400 mb-1">$ harbinger show</div>
+                    <div class="text-white mb-2">Tracked Projects (12)</div>
+
+                    <div class="text-cyan-400 mt-3 mb-1">Ruby Ecosystem (7)</div>
+                    <div class="text-gray-400">================================================================================</div>
+                    <div class="text-white">
+                        <div>┌─────────────────┬───────┬──────────┬────────────┬───────┬─────────────────┐</div>
+                        <div>│ Project         │ Ruby  │ Rails    │ PostgreSQL │ Redis │ Status          │</div>
+                        <div>├─────────────────┼───────┼──────────┼────────────┼───────┼─────────────────┤</div>
+                        <div>│ shop-api        │ 3.2.0 │ 6.1.7    │ 15.0       │ -     │ <span class="text-red-400">✗ Rails EOL</span>     │</div>
+                        <div>│ blog-engine     │ 3.3.0 │ 7.0.8    │ 16.0       │ 7.0   │ <span class="text-red-400">✗ Rails EOL</span>     │</div>
+                        <div>│ admin-portal    │ 3.3.0 │ 8.0.4    │ 16.11      │ 7.2   │ <span class="text-green-400">✓ Current</span>       │</div>
+                        <div>└─────────────────┴───────┴──────────┴────────────┴───────┴─────────────────┘</div>
+                    </div>
+
+                    <div class="text-cyan-400 mt-3 mb-1">Python Ecosystem (3)</div>
+                    <div class="text-gray-400">================================================================================</div>
+                    <div class="text-white">
+                        <div>┌──────────────┬────────┬────────────┬─────────┐</div>
+                        <div>│ Project      │ Python │ PostgreSQL │ Status  │</div>
+                        <div>├──────────────┼────────┼────────────┼─────────┤</div>
+                        <div>│ ml-pipeline  │ 3.11   │ 16.0       │ <span class="text-green-400">✓ Current</span> │</div>
+                        <div>│ data-scraper │ 3.12   │ -          │ <span class="text-green-400">✓ Current</span> │</div>
+                        <div>└──────────────┴────────┴────────────┴─────────┘</div>
+                    </div>
+
+                    <div class="text-cyan-400 mt-3 mb-1">Node.js Ecosystem (2)</div>
+                    <div class="text-gray-400">================================================================================</div>
+                    <div class="text-white">
+                        <div>┌──────────────┬─────────┬────────────┬─────────┐</div>
+                        <div>│ Project      │ Node.js │ PostgreSQL │ Status  │</div>
+                        <div>├──────────────┼─────────┼────────────┼─────────┤</div>
+                        <div>│ frontend-app │ 18.0    │ -          │ <span class="text-yellow-400">⚠ Node.js ending soon</span> │</div>
+                        <div>│ realtime-api │ 22.0    │ 16.0       │ <span class="text-green-400">✓ Current</span> │</div>
+                        <div>└──────────────┴─────────┴────────────┴─────────┘</div>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-semibold mb-4 mt-8">Commands</h3>
                 <ul class="space-y-3 text-gray-700">
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger scan --path [PATH]</code> - Scan a project and show EOL status</li>
                     <li><code class="bg-gray-100 px-2 py-1 rounded">harbinger scan --save</code> - Save project for tracking</li>
@@ -131,28 +173,31 @@
         <h2 class="text-3xl font-bold mb-8 text-center">Roadmap</h2>
         <div class="grid md:grid-cols-3 gap-8">
             <div>
-                <h3 class="text-xl font-semibold mb-4 text-green-600">✅ V0.5.0 (Current)</h3>
+                <h3 class="text-xl font-semibold mb-4 text-green-600">✅ V1.0 (Current)</h3>
                 <ul class="space-y-2 text-gray-600">
-                    <li>• Python version detection</li>
-                    <li>• Node.js version detection</li>
-                    <li>• Rust version detection</li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="text-xl font-semibold mb-4 text-blue-600">📋 V0.4.0</h3>
-                <ul class="space-y-2 text-gray-600">
+                    <li>• Ruby, Rails, Python, Node.js, Rust</li>
+                    <li>• PostgreSQL, MySQL, Redis, MongoDB</li>
+                    <li>• Ecosystem-grouped dashboard</li>
                     <li>• Export to JSON/CSV</li>
-                    <li>• Docker Compose detection</li>
-                    <li>• Redis detection</li>
-                    <li>• MongoDB detection</li>
+                    <li>• Bulk scanning & rescan</li>
                 </ul>
             </div>
             <div>
-                <h3 class="text-xl font-semibold mb-4 text-purple-600">🚀 V1.0 (Future)</h3>
+                <h3 class="text-xl font-semibold mb-4 text-blue-600">📋 V1.1 (Next)</h3>
                 <ul class="space-y-2 text-gray-600">
-                    <li>• Go support</li>
+                    <li>• Go support (go.mod)</li>
                     <li>• TypeScript detection</li>
+                    <li>• Framework detection (Django, Flask, Express)</li>
                     <li>• Package manager versions</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold mb-4 text-purple-600">🚀 V2.0 (Vision)</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li>• AI-powered upgrade summaries</li>
+                    <li>• Email/Slack notifications</li>
+                    <li>• Cloud platform detection</li>
+                    <li>• Team collaboration</li>
                 </ul>
             </div>
         </div>

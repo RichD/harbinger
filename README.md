@@ -7,12 +7,14 @@ Harbinger is a CLI tool that scans your Ruby, Rails, PostgreSQL, MySQL, Redis, M
 ## Features
 
 - 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, `.nvmrc`, `.python-version`, `pyproject.toml`, `package.json`, `rust-toolchain`, `Cargo.toml`, `config/database.yml`, and `docker-compose.yml`
-- 🐘 **Database detection** for PostgreSQL and MySQL (mysql2/trilogy adapters)
+- 🐘 **Database detection** for PostgreSQL, MySQL, Redis, and MongoDB
+- 🌐 **Multi-language support** - Ruby, Python, Node.js, Rust (Go coming in v1.1)
+- 📊 **Ecosystem-grouped dashboard** - Projects organized by language ecosystem with relevant components only
 - 📅 **Fetches EOL data** from [endoflife.date](https://endoflife.date)
 - 🎨 **Color-coded warnings** (red: already EOL, yellow: <6 months, green: safe)
 - ⚡ **Smart caching** (24-hour cache, works offline after first fetch)
-- 📊 **Track multiple projects** with `--save` and view dashboard with `harbinger show`
 - 🔄 **Bulk operations** with `--recursive` scan and `rescan` command
+- 📤 **Export to JSON/CSV** for reporting and automation
 - 🚀 **Zero configuration** - just run `harbinger scan`
 
 ## Installation
@@ -116,17 +118,41 @@ harbinger show myproject --format json
 **Example output:**
 
 ```
-Tracked Projects (10)
+Tracked Projects (12)
+
+Ruby Ecosystem (7)
 ================================================================================
-┌───────────────────┬───────┬──────────┬────────────┬───────┬─────────────┐
-│ Project           │ Ruby  │ Rails    │ PostgreSQL │ MySQL │ Status      │
-├───────────────────┼───────┼──────────┼────────────┼───────┼─────────────┤
-│ ledger            │ 3.3.0 │ 6.1.7.10 │ -          │ -     │ ✗ Rails EOL │
-│ option_tracker    │ 3.3.0 │ 7.0.8.7  │ -          │ -     │ ✗ Rails EOL │
-│ CarCal            │ -     │ 8.0.2    │ -          │ -     │ ✓ Current   │
-│ job_tracker       │ 3.3.0 │ 8.0.4    │ 16.11      │ -     │ ✓ Current   │
-└───────────────────┴───────┴──────────┴────────────┴───────┴─────────────┘
+┌─────────────────┬───────┬──────────┬────────────┬───────┬─────────────────┐
+│ Project         │ Ruby  │ Rails    │ PostgreSQL │ Redis │ Status          │
+├─────────────────┼───────┼──────────┼────────────┼───────┼─────────────────┤
+│ shop-api        │ 3.2.0 │ 6.1.7    │ 15.0       │ -     │ ✗ Rails EOL     │
+│ blog-engine     │ 3.3.0 │ 7.0.8    │ 16.0       │ 7.0   │ ✗ Rails EOL     │
+│ analytics-app   │ 3.3.0 │ 8.0.1    │ 16.0       │ -     │ ✓ Current       │
+│ admin-portal    │ 3.3.0 │ 8.0.4    │ 16.11      │ 7.2   │ ✓ Current       │
+│ billing-service │ 3.4.1 │ 8.1.0    │ 17.0       │ -     │ ✓ Current       │
+└─────────────────┴───────┴──────────┴────────────┴───────┴─────────────────┘
+
+Python Ecosystem (3)
+================================================================================
+┌──────────────┬────────┬────────────┬─────────┐
+│ Project      │ Python │ PostgreSQL │ Status  │
+├──────────────┼────────┼────────────┼─────────┤
+│ ml-pipeline  │ 3.11   │ 16.0       │ ✓ Current │
+│ data-scraper │ 3.12   │ -          │ ✓ Current │
+│ ai-worker    │ 3.13   │ 15.0       │ ✓ Current │
+└──────────────┴────────┴────────────┴─────────┘
+
+Node.js Ecosystem (2)
+================================================================================
+┌───────────────┬─────────┬────────────┬──────────────────────┐
+│ Project       │ Node.js │ PostgreSQL │ Status               │
+├───────────────┼─────────┼────────────┼──────────────────────┤
+│ frontend-app  │ 18.0    │ -          │ ⚠ Node.js ending soon │
+│ realtime-api  │ 22.0    │ 16.0       │ ✓ Current            │
+└───────────────┴─────────┴────────────┴──────────────────────┘
 ```
+
+Projects are grouped by their primary programming language ecosystem. Each ecosystem only displays relevant components (e.g., Python projects don't show Ruby/Rails columns).
 
 ### Re-scan all tracked projects
 
@@ -271,34 +297,27 @@ bundle exec exe/harbinger scan .
 
 ## Roadmap
 
-### V0.5.0 - Current
-- ✅ Python version detection (pyproject.toml, .python-version)
-- ✅ Node.js version detection (package.json, .nvmrc, .node-version)
-- ✅ Rust version detection (rust-toolchain, Cargo.toml)
-
-### V0.4.0
+### V1.0 - Current (Ready for Release!)
+- ✅ Ruby, Rails, Python, Node.js, Rust version detection
+- ✅ PostgreSQL, MySQL, Redis, MongoDB version detection
+- ✅ Ecosystem-grouped dashboard with smart component display
 - ✅ Export reports to JSON/CSV
-- ✅ Docker Compose database version detection
-- ✅ Redis version detection
-- ✅ MongoDB version detection
+- ✅ Bulk scanning with `--recursive` and `rescan` commands
+- ✅ 24-hour smart caching for offline support
+- ✅ Color-coded EOL warnings
 
-### V0.3.0
-- ✅ PostgreSQL version detection with local/remote database handling
-- ✅ MySQL version detection (mysql2 and trilogy adapters)
-- ✅ Rescan command to update all tracked projects
-- ✅ Enhanced dashboard with database columns
-- ✅ EOL tracking for PostgreSQL and MySQL
-
-### V1.0 - Future
-- 🐘 Go support (go.mod)
+### V1.1 - Next
+- 🐘 Go support (go.mod version detection)
 - 🔷 TypeScript version detection
-- 📦 Package manager detection (npm, yarn, pip)
+- 🎯 Framework detection (Django, Flask, Express)
+- 📦 Package manager detection (npm, yarn, pip, bundler versions)
 
 ### V2.0 - Vision
-- 🤖 AI-powered upgrade summaries
-- 📧 Email/Slack notifications
-- ☁️ Cloud platform detection (AWS, Heroku, etc.)
-- 👥 Team collaboration features
+- 🤖 AI-powered upgrade summaries and breaking change analysis
+- 📧 Email/Slack notifications for approaching EOL dates
+- ☁️ Cloud platform detection (AWS, Heroku, Render)
+- 👥 Team collaboration features (shared dashboards)
+- 📈 Historical tracking and trends
 
 ## Contributing
 
