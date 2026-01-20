@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["engineering@richd.net"]
 
   spec.summary = "Track End-of-Life dates for your tech stack and stay ahead of deprecations"
-  spec.description = "Harbinger monitors EOL dates for Ruby and Rails. Auto-detects versions from your projects and alerts you before support ends."
+  spec.description = "Harbinger tracks EOL dates for Ruby, Rails, Python, Node.js, Rust, Go, PostgreSQL, MySQL, Redis, and MongoDB. Auto-detects versions from your projects and alerts you before support ends. Features ecosystem-grouped dashboard, JSON/CSV export, and bulk scanning."
   spec.homepage = "https://stackharbinger.com"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"

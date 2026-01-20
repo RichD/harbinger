@@ -134,22 +134,22 @@ Ruby Ecosystem (7)
 
 Python Ecosystem (3)
 ================================================================================
-┌──────────────┬────────┬────────────┬─────────┐
-│ Project      │ Python │ PostgreSQL │ Status  │
-├──────────────┼────────┼────────────┼─────────┤
+┌──────────────┬────────┬────────────┬───────────┐
+│ Project      │ Python │ PostgreSQL │ Status    │
+├──────────────┼────────┼────────────┼───────────┤
 │ ml-pipeline  │ 3.11   │ 16.0       │ ✓ Current │
 │ data-scraper │ 3.12   │ -          │ ✓ Current │
 │ ai-worker    │ 3.13   │ 15.0       │ ✓ Current │
-└──────────────┴────────┴────────────┴─────────┘
+└──────────────┴────────┴────────────┴───────────┘
 
 Node.js Ecosystem (2)
 ================================================================================
-┌───────────────┬─────────┬────────────┬──────────────────────┐
-│ Project       │ Node.js │ PostgreSQL │ Status               │
-├───────────────┼─────────┼────────────┼──────────────────────┤
-│ frontend-app  │ 18.0    │ -          │ ⚠ Node.js ending soon │
-│ realtime-api  │ 22.0    │ 16.0       │ ✓ Current            │
-└───────────────┴─────────┴────────────┴──────────────────────┘
+┌──────────────┬─────────┬────────────┬───────────────────────┐
+│ Project      │ Node.js │ PostgreSQL │ Status                │
+├──────────────┼─────────┼────────────┼───────────────────────┤
+│ frontend-app │ 18.0    │ -          │ ⚠ Node.js ending soon │
+│ realtime-api │ 22.0    │ 16.0       │ ✓ Current             │
+└──────────────┴─────────┴────────────┴───────────────────────┘
 ```
 
 Projects are grouped by their primary programming language ecosystem. Each ecosystem only displays relevant components (e.g., Python projects don't show Ruby/Rails columns).

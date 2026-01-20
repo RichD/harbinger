@@ -112,43 +112,37 @@
                 <h3 class="text-2xl font-semibold mb-4">Dashboard with Ecosystem Grouping</h3>
                 <p class="text-gray-600 mb-4">Projects are organized by their primary programming language ecosystem, showing only relevant components:</p>
 
-                <div class="bg-gray-900 rounded-lg p-6 font-mono text-xs overflow-x-auto mb-8">
-                    <div class="text-gray-400 mb-1">$ harbinger show</div>
-                    <div class="text-white mb-2">Tracked Projects (12)</div>
+                <div class="bg-gray-900 rounded-lg p-6 overflow-x-auto mb-8">
+                    <pre class="font-mono text-xs text-white"><span class="text-gray-400">$ harbinger show</span>
+Tracked Projects (12)
 
-                    <div class="text-cyan-400 mt-3 mb-1">Ruby Ecosystem (7)</div>
-                    <div class="text-gray-400">================================================================================</div>
-                    <div class="text-white">
-                        <div>┌─────────────────┬───────┬──────────┬────────────┬───────┬─────────────────┐</div>
-                        <div>│ Project         │ Ruby  │ Rails    │ PostgreSQL │ Redis │ Status          │</div>
-                        <div>├─────────────────┼───────┼──────────┼────────────┼───────┼─────────────────┤</div>
-                        <div>│ shop-api        │ 3.2.0 │ 6.1.7    │ 15.0       │ -     │ <span class="text-red-400">✗ Rails EOL</span>     │</div>
-                        <div>│ blog-engine     │ 3.3.0 │ 7.0.8    │ 16.0       │ 7.0   │ <span class="text-red-400">✗ Rails EOL</span>     │</div>
-                        <div>│ admin-portal    │ 3.3.0 │ 8.0.4    │ 16.11      │ 7.2   │ <span class="text-green-400">✓ Current</span>       │</div>
-                        <div>└─────────────────┴───────┴──────────┴────────────┴───────┴─────────────────┘</div>
-                    </div>
+<span class="text-cyan-400">Ruby Ecosystem (7)</span>
+<span class="text-gray-400">================================================================================</span>
+┌─────────────────┬───────┬──────────┬────────────┬───────┬─────────────────┐
+│ Project         │ Ruby  │ Rails    │ PostgreSQL │ Redis │ Status          │
+├─────────────────┼───────┼──────────┼────────────┼───────┼─────────────────┤
+│ shop-api        │ 3.2.0 │ 6.1.7    │ 15.0       │ -     │ <span class="text-red-400">✗ Rails EOL</span>     │
+│ blog-engine     │ 3.3.0 │ 7.0.8    │ 16.0       │ 7.0   │ <span class="text-red-400">✗ Rails EOL</span>     │
+│ admin-portal    │ 3.3.0 │ 8.0.4    │ 16.11      │ 7.2   │ <span class="text-green-400">✓ Current</span>       │
+└─────────────────┴───────┴──────────┴────────────┴───────┴─────────────────┘
 
-                    <div class="text-cyan-400 mt-3 mb-1">Python Ecosystem (3)</div>
-                    <div class="text-gray-400">================================================================================</div>
-                    <div class="text-white">
-                        <div>┌──────────────┬────────┬────────────┬─────────┐</div>
-                        <div>│ Project      │ Python │ PostgreSQL │ Status  │</div>
-                        <div>├──────────────┼────────┼────────────┼─────────┤</div>
-                        <div>│ ml-pipeline  │ 3.11   │ 16.0       │ <span class="text-green-400">✓ Current</span> │</div>
-                        <div>│ data-scraper │ 3.12   │ -          │ <span class="text-green-400">✓ Current</span> │</div>
-                        <div>└──────────────┴────────┴────────────┴─────────┘</div>
-                    </div>
+<span class="text-cyan-400">Python Ecosystem (3)</span>
+<span class="text-gray-400">================================================================================</span>
+┌──────────────┬────────┬────────────┬───────────┐
+│ Project      │ Python │ PostgreSQL │ Status    │
+├──────────────┼────────┼────────────┼───────────┤
+│ ml-pipeline  │ 3.11   │ 16.0       │ <span class="text-green-400">✓ Current</span> │
+│ data-scraper │ 3.12   │ -          │ <span class="text-green-400">✓ Current</span> │
+└──────────────┴────────┴────────────┴───────────┘
 
-                    <div class="text-cyan-400 mt-3 mb-1">Node.js Ecosystem (2)</div>
-                    <div class="text-gray-400">================================================================================</div>
-                    <div class="text-white">
-                        <div>┌──────────────┬─────────┬────────────┬─────────┐</div>
-                        <div>│ Project      │ Node.js │ PostgreSQL │ Status  │</div>
-                        <div>├──────────────┼─────────┼────────────┼─────────┤</div>
-                        <div>│ frontend-app │ 18.0    │ -          │ <span class="text-yellow-400">⚠ Node.js ending soon</span> │</div>
-                        <div>│ realtime-api │ 22.0    │ 16.0       │ <span class="text-green-400">✓ Current</span> │</div>
-                        <div>└──────────────┴─────────┴────────────┴─────────┘</div>
-                    </div>
+<span class="text-cyan-400">Node.js Ecosystem (2)</span>
+<span class="text-gray-400">================================================================================</span>
+┌──────────────┬─────────┬────────────┬───────────────────────┐
+│ Project      │ Node.js │ PostgreSQL │ Status                │
+├──────────────┼─────────┼────────────┼───────────────────────┤
+│ frontend-app │ 18.0    │ -          │ <span class="text-yellow-400">⚠ Node.js ending soon</span> │
+│ realtime-api │ 22.0    │ 16.0       │ <span class="text-green-400">✓ Current</span>             │
+└──────────────┴─────────┴────────────┴───────────────────────┘</pre>
                 </div>
 
                 <h3 class="text-2xl font-semibold mb-4 mt-8">Commands</h3>
