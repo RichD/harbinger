@@ -2,11 +2,11 @@
 
 **Track End-of-Life dates for your tech stack and stay ahead of deprecations.**
 
-Harbinger is a CLI tool that scans your Ruby, Rails, PostgreSQL, and MySQL versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
+Harbinger is a CLI tool that scans your Ruby, Rails, PostgreSQL, MySQL, Redis, and MongoDB versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
 
 ## Features
 
-- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, and `config/database.yml`
+- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, `config/database.yml`, and `docker-compose.yml`
 - 🐘 **Database detection** for PostgreSQL and MySQL (mysql2/trilogy adapters)
 - 📅 **Fetches EOL data** from [endoflife.date](https://endoflife.date)
 - 🎨 **Color-coded warnings** (red: already EOL, yellow: <6 months, green: safe)
@@ -204,6 +204,18 @@ Parses `Gemfile.lock` for the rails gem version.
 3. Falls back to `mysql2` or `trilogy` gem version from `Gemfile.lock`
 
 **Supported adapters**: `mysql2` (traditional) and `trilogy` (Rails 7.1+)
+
+### Redis Detection
+
+1. Checks `docker-compose.yml` for redis image with version tag
+2. Tries `redis-server --version` for local installations
+3. Falls back to `redis` gem version from `Gemfile.lock`
+
+### MongoDB Detection
+
+1. Checks `docker-compose.yml` for mongo image with version tag
+2. Tries `mongod --version` for local installations
+3. Falls back to `mongoid` or `mongo` gem version from `Gemfile.lock`
 
 ## Requirements
 
