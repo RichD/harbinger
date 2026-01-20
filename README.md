@@ -2,11 +2,11 @@
 
 **Track End-of-Life dates for your tech stack and stay ahead of deprecations.**
 
-Harbinger is a CLI tool that scans your Ruby, Rails, PostgreSQL, MySQL, Redis, MongoDB, Python, and Node.js versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
+Harbinger is a CLI tool that scans your Ruby, Rails, PostgreSQL, MySQL, Redis, MongoDB, Python, Node.js, and Rust versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
 
 ## Features
 
-- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, `.nvmrc`, `.python-version`, `pyproject.toml`, `package.json`, `config/database.yml`, and `docker-compose.yml`
+- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, `.nvmrc`, `.python-version`, `pyproject.toml`, `package.json`, `rust-toolchain`, `Cargo.toml`, `config/database.yml`, and `docker-compose.yml`
 - 🐘 **Database detection** for PostgreSQL and MySQL (mysql2/trilogy adapters)
 - 📅 **Fetches EOL data** from [endoflife.date](https://endoflife.date)
 - 🎨 **Color-coded warnings** (red: already EOL, yellow: <6 months, green: safe)
@@ -169,6 +169,7 @@ harbinger version
    - MongoDB: `docker-compose.yml` + `mongod --version` or `mongoid`/`mongo` gem
    - Python: `.python-version`, `pyproject.toml`, `docker-compose.yml`, or `python --version`
    - Node.js: `.nvmrc`, `.node-version`, `package.json` engines, `docker-compose.yml`, or `node --version`
+   - Rust: `rust-toolchain`, `rust-toolchain.toml`, `Cargo.toml` (rust-version), `docker-compose.yml`, or `rustc --version`
 
 2. **EOL Data**: Fetches official EOL dates from [endoflife.date](https://endoflife.date) API
 
@@ -237,6 +238,15 @@ Parses `Gemfile.lock` for the rails gem version.
 
 **Version Normalization**: Handles constraint operators (`>=`, `^`, `~`), LTS names (`lts/hydrogen`), and version ranges
 
+### Rust Detection
+
+1. `rust-toolchain` or `rust-toolchain.toml` files (highest priority - explicit toolchain specification)
+2. `Cargo.toml` `rust-version` field (MSRV - Minimum Supported Rust Version)
+3. Docker Compose `rust:*` images
+4. `rustc --version` for system installation (only when Rust project files exist)
+
+**Note:** Symbolic channels like "stable", "beta", "nightly" are skipped as they don't provide specific versions.
+
 ## Requirements
 
 - Ruby >= 3.1.0
@@ -264,6 +274,7 @@ bundle exec exe/harbinger scan .
 ### V0.5.0 - Current
 - ✅ Python version detection (pyproject.toml, .python-version)
 - ✅ Node.js version detection (package.json, .nvmrc, .node-version)
+- ✅ Rust version detection (rust-toolchain, Cargo.toml)
 
 ### V0.4.0
 - ✅ Export reports to JSON/CSV
@@ -279,7 +290,6 @@ bundle exec exe/harbinger scan .
 - ✅ EOL tracking for PostgreSQL and MySQL
 
 ### V1.0 - Future
-- 🦀 Rust support (Cargo.toml)
 - 🐘 Go support (go.mod)
 - 🔷 TypeScript version detection
 - 📦 Package manager detection (npm, yarn, pip)

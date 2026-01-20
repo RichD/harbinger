@@ -13,6 +13,7 @@ require "harbinger/analyzers/redis_detector"
 require "harbinger/analyzers/mongo_detector"
 require "harbinger/analyzers/python_detector"
 require "harbinger/analyzers/node_detector"
+require "harbinger/analyzers/rust_detector"
 require "harbinger/eol_fetcher"
 require "harbinger/config_manager"
 require "harbinger/exporters/json_exporter"
@@ -88,6 +89,7 @@ module Harbinger
       has_mongo = false
       has_python = false
       has_nodejs = false
+      has_rust = false
 
       projects.each do |name, data|
         ruby_version = data["ruby"]
@@ -98,6 +100,7 @@ module Harbinger
         mongo_version = data["mongo"]
         python_version = data["python"]
         nodejs_version = data["nodejs"]
+        rust_version = data["rust"]
 
         # Filter out gem-only database versions
         postgres_version = nil if postgres_version&.include?("gem")
@@ -114,8 +117,9 @@ module Harbinger
         mongo_present = mongo_version && !mongo_version.empty?
         python_present = python_version && !python_version.empty?
         nodejs_present = nodejs_version && !nodejs_version.empty?
+        rust_present = rust_version && !rust_version.empty?
 
-        next unless ruby_present || rails_present || postgres_present || mysql_present || redis_present || mongo_present || python_present || nodejs_present
+        next unless ruby_present || rails_present || postgres_present || mysql_present || redis_present || mongo_present || python_present || nodejs_present || rust_present
 
         # Track which columns have data
         has_ruby ||= ruby_present
@@ -126,6 +130,7 @@ module Harbinger
         has_mongo ||= mongo_present
         has_python ||= python_present
         has_nodejs ||= nodejs_present
+        has_rust ||= rust_present
 
         # Determine worst EOL status
         worst_status = :green
@@ -243,6 +248,20 @@ module Harbinger
           end
         end
 
+        if rust_present
+          rust_eol = fetcher.eol_date_for("rust", rust_version)
+          if rust_eol
+            days = days_until(rust_eol)
+            status = eol_color(days)
+            worst_status = status if status_priority(status) > status_priority(worst_status)
+            if days.negative?
+              status_text = "✗ Rust EOL"
+            elsif days < 180 && !status_text.include?("EOL")
+              status_text = "⚠ Rust ending soon"
+            end
+          end
+        end
+
         rows << {
           name: name,
           path: File.dirname(data["path"] || ""),
@@ -254,6 +273,7 @@ module Harbinger
           mongo: mongo_present ? mongo_version : "-",
           python: python_present ? python_version : "-",
           nodejs: nodejs_present ? nodejs_version : "-",
+          rust: rust_present ? rust_version : "-",
           status: colorize_status(status_text, worst_status),
           status_raw: status_text
         }
@@ -291,6 +311,7 @@ module Harbinger
       headers << "MongoDB" if has_mongo
       headers << "Python" if has_python
       headers << "Node.js" if has_nodejs
+      headers << "Rust" if has_rust
       headers << "Status"
 
       table_rows = rows.map do |row|
@@ -304,6 +325,7 @@ module Harbinger
         table_row << row[:mongo] if has_mongo
         table_row << row[:python] if has_python
         table_row << row[:nodejs] if has_nodejs
+        table_row << row[:rust] if has_rust
         table_row << row[:status]
         table_row
       end
@@ -323,7 +345,7 @@ module Harbinger
       say "Updating EOL data...", :cyan
 
       fetcher = EolFetcher.new
-      products = %w[ruby rails postgresql mysql redis mongodb python nodejs]
+      products = %w[ruby rails postgresql mysql redis mongodb python nodejs rust]
 
       products.each do |product|
         say "Fetching #{product}...", :white
@@ -398,6 +420,7 @@ module Harbinger
           mongo_detector = Analyzers::MongoDetector.new(project_path)
           python_detector = Analyzers::PythonDetector.new(project_path)
           node_detector = Analyzers::NodeDetector.new(project_path)
+          rust_detector = Analyzers::RustDetector.new(project_path)
 
           ruby_version = ruby_detector.detect
           rails_version = rails_analyzer.detect
@@ -407,6 +430,7 @@ module Harbinger
           mongo_version = mongo_detector.detect
           python_version = python_detector.detect
           nodejs_version = node_detector.detect
+          rust_version = rust_detector.detect
 
           # Save to config
           config_manager.save_project(
@@ -420,7 +444,8 @@ module Harbinger
               redis: redis_version,
               mongo: mongo_version,
               python: python_version,
-              nodejs: nodejs_version
+              nodejs: nodejs_version,
+              rust: rust_version
             }.compact
           )
         end
@@ -491,6 +516,7 @@ module Harbinger
       mongo_detector = Analyzers::MongoDetector.new(project_path)
       python_detector = Analyzers::PythonDetector.new(project_path)
       node_detector = Analyzers::NodeDetector.new(project_path)
+      rust_detector = Analyzers::RustDetector.new(project_path)
 
       ruby_version = ruby_detector.detect
       rails_version = rails_analyzer.detect
@@ -500,6 +526,7 @@ module Harbinger
       mongo_version = mongo_detector.detect
       python_version = python_detector.detect
       nodejs_version = node_detector.detect
+      rust_version = rust_detector.detect
 
       ruby_present = ruby_detector.ruby_detected?
       rails_present = rails_analyzer.rails_detected?
@@ -509,6 +536,7 @@ module Harbinger
       mongo_present = mongo_detector.mongo_detected?
       python_present = python_detector.python_detected?
       nodejs_present = node_detector.nodejs_detected?
+      rust_present = rust_detector.rust_detected?
 
       # Display results
       say "\nDetected versions:", :green
@@ -564,8 +592,14 @@ module Harbinger
         say "  Node.js:    Present (version not detected)", :yellow
       end
 
+      if rust_version
+        say "  Rust:       #{rust_version}", :white
+      elsif rust_present
+        say "  Rust:       Present (version not detected)", :yellow
+      end
+
       # Fetch and display EOL dates
-      if ruby_version || rails_version || postgres_version || mysql_version || redis_version || mongo_version || python_version || nodejs_version
+      if ruby_version || rails_version || postgres_version || mysql_version || redis_version || mongo_version || python_version || nodejs_version || rust_version
         say "\nFetching EOL data...", :cyan
         fetcher = EolFetcher.new
 
@@ -586,6 +620,8 @@ module Harbinger
         display_eol_info(fetcher, "Python", python_version) if python_version
 
         display_eol_info(fetcher, "Node.js", nodejs_version) if nodejs_version
+
+        display_eol_info(fetcher, "Rust", rust_version) if rust_version
       end
 
       # Save to config if --save flag is used
@@ -597,7 +633,8 @@ module Harbinger
         redis: redis_version,
         mongo: mongo_version,
         python: python_version,
-        nodejs: nodejs_version
+        nodejs: nodejs_version,
+        rust: rust_version
       }.compact
 
       if options[:save] && !options[:recursive]

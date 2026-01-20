@@ -7,7 +7,7 @@ module Harbinger
   module Exporters
     # Base class for exporters that transform project data into various formats
     class BaseExporter
-      COMPONENTS = %w[ruby rails postgres mysql redis mongo python nodejs].freeze
+      COMPONENTS = %w[ruby rails postgres mysql redis mongo python nodejs rust].freeze
       PRODUCT_NAMES = {
         "ruby" => "ruby",
         "rails" => "rails",
@@ -16,7 +16,8 @@ module Harbinger
         "redis" => "redis",
         "mongo" => "mongodb",
         "python" => "python",
-        "nodejs" => "nodejs"
+        "nodejs" => "nodejs",
+        "rust" => "rust"
       }.freeze
 
       def initialize(projects, fetcher: nil)
