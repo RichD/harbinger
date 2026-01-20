@@ -25,6 +25,65 @@ module Harbinger
       true
     end
 
+    # Ecosystem priority for determining primary language
+    ECOSYSTEM_PRIORITY = %w[ruby python rust go nodejs].freeze
+
+    # Ecosystem definitions with languages and databases
+    ECOSYSTEMS = {
+      "ruby" => {
+        name: "Ruby Ecosystem",
+        languages: ["ruby", "rails"],
+        databases: ["postgres", "mysql", "redis", "mongo"]
+      },
+      "python" => {
+        name: "Python Ecosystem",
+        languages: ["python"],
+        databases: ["postgres", "mysql", "redis", "mongo"]
+      },
+      "rust" => {
+        name: "Rust Ecosystem",
+        languages: ["rust"],
+        databases: ["postgres", "mysql", "redis", "mongo"]
+      },
+      "go" => {
+        name: "Go Ecosystem",
+        languages: ["go"],
+        databases: ["postgres", "mysql", "redis", "mongo"]
+      },
+      "nodejs" => {
+        name: "Node.js Ecosystem",
+        languages: ["nodejs"],
+        databases: ["postgres", "mysql", "redis", "mongo"]
+      }
+    }.freeze
+
+    # Component display names for table headers
+    COMPONENT_DISPLAY_NAMES = {
+      "ruby" => "Ruby",
+      "rails" => "Rails",
+      "python" => "Python",
+      "nodejs" => "Node.js",
+      "rust" => "Rust",
+      "go" => "Go",
+      "postgres" => "PostgreSQL",
+      "mysql" => "MySQL",
+      "redis" => "Redis",
+      "mongo" => "MongoDB"
+    }.freeze
+
+    # Product name mapping for EOL API lookups
+    PRODUCT_NAME_MAP = {
+      "ruby" => "ruby",
+      "rails" => "rails",
+      "postgres" => "postgresql",
+      "mysql" => "mysql",
+      "redis" => "redis",
+      "mongo" => "mongodb",
+      "python" => "python",
+      "nodejs" => "nodejs",
+      "rust" => "rust"
+    }.freeze
+
     desc "scan", "Scan a project directory and detect versions"
     option :path, type: :string, aliases: "-p", desc: "Path to project directory (defaults to current directory)"
     option :save, type: :boolean, aliases: "-s", desc: "Save project to config for dashboard"
@@ -77,265 +136,33 @@ module Harbinger
         return
       end
 
+      # Group projects by ecosystem
       fetcher = EolFetcher.new
-      rows = []
+      ecosystem_projects = group_projects_by_ecosystem(projects)
 
-      # Track which columns have data
-      has_ruby = false
-      has_rails = false
-      has_postgres = false
-      has_mysql = false
-      has_redis = false
-      has_mongo = false
-      has_python = false
-      has_nodejs = false
-      has_rust = false
-
-      projects.each do |name, data|
-        ruby_version = data["ruby"]
-        rails_version = data["rails"]
-        postgres_version = data["postgres"]
-        mysql_version = data["mysql"]
-        redis_version = data["redis"]
-        mongo_version = data["mongo"]
-        python_version = data["python"]
-        nodejs_version = data["nodejs"]
-        rust_version = data["rust"]
-
-        # Filter out gem-only database versions
-        postgres_version = nil if postgres_version&.include?("gem")
-        mysql_version = nil if mysql_version&.include?("gem")
-        redis_version = nil if redis_version&.include?("gem")
-        mongo_version = nil if mongo_version&.include?("gem")
-
-        # Skip projects with no matching products
-        ruby_present = ruby_version && !ruby_version.empty?
-        rails_present = rails_version && !rails_version.empty?
-        postgres_present = postgres_version && !postgres_version.empty?
-        mysql_present = mysql_version && !mysql_version.empty?
-        redis_present = redis_version && !redis_version.empty?
-        mongo_present = mongo_version && !mongo_version.empty?
-        python_present = python_version && !python_version.empty?
-        nodejs_present = nodejs_version && !nodejs_version.empty?
-        rust_present = rust_version && !rust_version.empty?
-
-        next unless ruby_present || rails_present || postgres_present || mysql_present || redis_present || mongo_present || python_present || nodejs_present || rust_present
-
-        # Track which columns have data
-        has_ruby ||= ruby_present
-        has_rails ||= rails_present
-        has_postgres ||= postgres_present
-        has_mysql ||= mysql_present
-        has_redis ||= redis_present
-        has_mongo ||= mongo_present
-        has_python ||= python_present
-        has_nodejs ||= nodejs_present
-        has_rust ||= rust_present
-
-        # Determine worst EOL status
-        worst_status = :green
-        status_text = "✓ Current"
-
-        if ruby_present
-          ruby_eol = fetcher.eol_date_for("ruby", ruby_version)
-          if ruby_eol
-            days = days_until(ruby_eol)
-            status = eol_color(days)
-            worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days.negative?
-              status_text = "✗ Ruby EOL"
-            elsif days < 180
-              status_text = "⚠ Ruby ending soon"
-            end
-          end
-        end
-
-        if rails_present
-          rails_eol = fetcher.eol_date_for("rails", rails_version)
-          if rails_eol
-            days = days_until(rails_eol)
-            status = eol_color(days)
-            worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days.negative?
-              status_text = "✗ Rails EOL"
-            elsif days < 180 && !status_text.include?("EOL")
-              status_text = "⚠ Rails ending soon"
-            end
-          end
-        end
-
-        if postgres_present
-          postgres_eol = fetcher.eol_date_for("postgresql", postgres_version)
-          if postgres_eol
-            days = days_until(postgres_eol)
-            status = eol_color(days)
-            worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days.negative?
-              status_text = "✗ PostgreSQL EOL"
-            elsif days < 180 && !status_text.include?("EOL")
-              status_text = "⚠ PostgreSQL ending soon"
-            end
-          end
-        end
-
-        if mysql_present
-          mysql_eol = fetcher.eol_date_for("mysql", mysql_version)
-          if mysql_eol
-            days = days_until(mysql_eol)
-            status = eol_color(days)
-            worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days.negative?
-              status_text = "✗ MySQL EOL"
-            elsif days < 180 && !status_text.include?("EOL")
-              status_text = "⚠ MySQL ending soon"
-            end
-          end
-        end
-
-        if redis_present
-          redis_eol = fetcher.eol_date_for("redis", redis_version)
-          if redis_eol
-            days = days_until(redis_eol)
-            status = eol_color(days)
-            worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days.negative?
-              status_text = "✗ Redis EOL"
-            elsif days < 180 && !status_text.include?("EOL")
-              status_text = "⚠ Redis ending soon"
-            end
-          end
-        end
-
-        if mongo_present
-          mongo_eol = fetcher.eol_date_for("mongodb", mongo_version)
-          if mongo_eol
-            days = days_until(mongo_eol)
-            status = eol_color(days)
-            worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days.negative?
-              status_text = "✗ MongoDB EOL"
-            elsif days < 180 && !status_text.include?("EOL")
-              status_text = "⚠ MongoDB ending soon"
-            end
-          end
-        end
-
-        if python_present
-          python_eol = fetcher.eol_date_for("python", python_version)
-          if python_eol
-            days = days_until(python_eol)
-            status = eol_color(days)
-            worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days.negative?
-              status_text = "✗ Python EOL"
-            elsif days < 180 && !status_text.include?("EOL")
-              status_text = "⚠ Python ending soon"
-            end
-          end
-        end
-
-        if nodejs_present
-          nodejs_eol = fetcher.eol_date_for("nodejs", nodejs_version)
-          if nodejs_eol
-            days = days_until(nodejs_eol)
-            status = eol_color(days)
-            worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days.negative?
-              status_text = "✗ Node.js EOL"
-            elsif days < 180 && !status_text.include?("EOL")
-              status_text = "⚠ Node.js ending soon"
-            end
-          end
-        end
-
-        if rust_present
-          rust_eol = fetcher.eol_date_for("rust", rust_version)
-          if rust_eol
-            days = days_until(rust_eol)
-            status = eol_color(days)
-            worst_status = status if status_priority(status) > status_priority(worst_status)
-            if days.negative?
-              status_text = "✗ Rust EOL"
-            elsif days < 180 && !status_text.include?("EOL")
-              status_text = "⚠ Rust ending soon"
-            end
-          end
-        end
-
-        rows << {
-          name: name,
-          path: File.dirname(data["path"] || ""),
-          ruby: ruby_present ? ruby_version : "-",
-          rails: rails_present ? rails_version : "-",
-          postgres: postgres_present ? postgres_version : "-",
-          mysql: mysql_present ? mysql_version : "-",
-          redis: redis_present ? redis_version : "-",
-          mongo: mongo_present ? mongo_version : "-",
-          python: python_present ? python_version : "-",
-          nodejs: nodejs_present ? nodejs_version : "-",
-          rust: rust_present ? rust_version : "-",
-          status: colorize_status(status_text, worst_status),
-          status_raw: status_text
-        }
-      end
-
-      if rows.empty?
+      # Check if any projects have a programming language
+      if ecosystem_projects.empty?
         say "No projects with detected versions.", :yellow
         say "Use 'harbinger scan --save' to add projects", :cyan
         return
       end
 
-      say "Tracked Projects (#{rows.size})", :cyan
-      say "=" * 80, :cyan
+      # Display header with total project count
+      total_projects = ecosystem_projects.values.sum(&:size)
+      say "Tracked Projects (#{total_projects})", :cyan
 
-      # Sort by status priority (worst first), then by name
-      rows.sort_by! do |row|
-        priority = if row[:status_raw].include?("✗")
-                     0
-                   elsif row[:status_raw].include?("⚠")
-                     1
-                   else
-                     2
-                   end
-        [priority, row[:name]]
+      # Render each ecosystem table
+      ECOSYSTEMS.keys.each do |ecosystem_key|
+        projects_in_ecosystem = ecosystem_projects[ecosystem_key]
+        next if projects_in_ecosystem.empty? # Hide empty tables
+
+        render_ecosystem_table(
+          ecosystem_key,
+          projects_in_ecosystem,
+          fetcher,
+          verbose: options[:verbose]
+        )
       end
-
-      # Build dynamic headers and rows
-      headers = ["Project"]
-      headers << "Path" if options[:verbose]
-      headers << "Ruby" if has_ruby
-      headers << "Rails" if has_rails
-      headers << "PostgreSQL" if has_postgres
-      headers << "MySQL" if has_mysql
-      headers << "Redis" if has_redis
-      headers << "MongoDB" if has_mongo
-      headers << "Python" if has_python
-      headers << "Node.js" if has_nodejs
-      headers << "Rust" if has_rust
-      headers << "Status"
-
-      table_rows = rows.map do |row|
-        table_row = [row[:name]]
-        table_row << row[:path] if options[:verbose]
-        table_row << row[:ruby] if has_ruby
-        table_row << row[:rails] if has_rails
-        table_row << row[:postgres] if has_postgres
-        table_row << row[:mysql] if has_mysql
-        table_row << row[:redis] if has_redis
-        table_row << row[:mongo] if has_mongo
-        table_row << row[:python] if has_python
-        table_row << row[:nodejs] if has_nodejs
-        table_row << row[:rust] if has_rust
-        table_row << row[:status]
-        table_row
-      end
-
-      table = TTY::Table.new(
-        header: headers,
-        rows: table_rows
-      )
-
-      puts table.render(:unicode, padding: [0, 1], resize: false)
 
       say "\nUse 'harbinger scan --path <project>' to update a project", :cyan
     end
@@ -465,6 +292,178 @@ module Harbinger
 
     private
 
+    # Calculate EOL status for a single component (e.g., ruby, rails, postgres)
+    # Returns: { status: :red/:yellow/:green, text: "✗ Ruby EOL", days: -30 } or nil
+    def calculate_component_status(component, version, fetcher)
+      return nil unless version && !version.empty?
+
+      product_name = PRODUCT_NAME_MAP[component]
+      eol_date = fetcher.eol_date_for(product_name, version)
+      return nil unless eol_date
+
+      days = days_until(eol_date)
+      status = eol_color(days)
+
+      component_display = COMPONENT_DISPLAY_NAMES[component] || component.capitalize
+
+      text = if days.negative?
+               "✗ #{component_display} EOL"
+             elsif days < 180
+               "⚠ #{component_display} ending soon"
+             else
+               "✓ Current"
+             end
+
+      { status: status, text: text, days: days }
+    end
+
+    # Determine overall status for a project across specified components
+    # Returns: { status: :red/:yellow/:green, text: "✗ Ruby EOL" }
+    def determine_overall_status(project_data, components, fetcher)
+      worst_status = :green
+      status_text = "✓ Current"
+
+      components.each do |component|
+        version = project_data[component]
+        next unless version && !version.empty?
+
+        # Filter out gem-only database versions
+        if %w[postgres mysql redis mongo].include?(component) && version&.include?("gem")
+          next
+        end
+
+        component_status = calculate_component_status(component, version, fetcher)
+        next unless component_status
+
+        if status_priority(component_status[:status]) > status_priority(worst_status)
+          worst_status = component_status[:status]
+          status_text = component_status[:text]
+        end
+      end
+
+      { status: worst_status, text: status_text }
+    end
+
+    # Build a row hash for a single project with all its component versions
+    # Returns: { name: "project", path: "/path", ruby: "3.2.0", ..., status: colored_text }
+    def build_project_row(name, data, components, fetcher, verbose: false)
+      row = { name: name }
+      row[:path] = File.dirname(data["path"] || "") if verbose
+
+      # Add component versions
+      components.each do |component|
+        version = data[component]
+        # Filter out gem-only database versions
+        if %w[postgres mysql redis mongo].include?(component) && version&.include?("gem")
+          version = nil
+        end
+        row[component.to_sym] = (version && !version.empty?) ? version : "-"
+      end
+
+      # Calculate overall status
+      status_info = determine_overall_status(data, components, fetcher)
+      row[:status] = colorize_status(status_info[:text], status_info[:status])
+      row[:status_raw] = status_info[:text]
+
+      row
+    end
+
+    # Determine the primary ecosystem for a project based on detected languages
+    # Returns: "ruby", "python", "rust", "go", "nodejs", or nil
+    def determine_primary_ecosystem(data)
+      ECOSYSTEM_PRIORITY.each do |lang|
+        version = data[lang]
+        return lang if version && !version.empty?
+      end
+      nil # No language detected
+    end
+
+    # Group projects by their primary ecosystem
+    # Returns: { "ruby" => [[name, data], ...], "python" => [[name, data], ...] }
+    def group_projects_by_ecosystem(projects)
+      ecosystem_projects = Hash.new { |h, k| h[k] = [] }
+
+      projects.each do |name, data|
+        primary = determine_primary_ecosystem(data)
+
+        # Skip projects with no programming language detected
+        next unless primary
+
+        ecosystem_projects[primary] << [name, data]
+      end
+
+      ecosystem_projects
+    end
+
+    # Render a table for a single ecosystem with its projects
+    def render_ecosystem_table(ecosystem_key, projects, fetcher, verbose: false)
+      config = ECOSYSTEMS[ecosystem_key]
+      components = config[:languages] + config[:databases]
+
+      # Track which columns have data in this ecosystem
+      has_columns = Hash.new(false)
+      rows = []
+
+      projects.each do |name, data|
+        row = build_project_row(name, data, components, fetcher, verbose: verbose)
+
+        # Track columns with data
+        components.each do |component|
+          has_columns[component] = true if row[component.to_sym] != "-"
+        end
+
+        rows << row
+      end
+
+      return if rows.empty? # Skip empty ecosystems
+
+      # Sort by status priority (worst first)
+      rows.sort_by! do |row|
+        priority = if row[:status_raw].include?("✗")
+                     0
+                   elsif row[:status_raw].include?("⚠")
+                     1
+                   else
+                     2
+                   end
+        [priority, row[:name]]
+      end
+
+      # Build dynamic headers
+      headers = ["Project"]
+      headers << "Path" if verbose
+
+      components.each do |component|
+        next unless has_columns[component]
+
+        headers << COMPONENT_DISPLAY_NAMES[component]
+      end
+
+      headers << "Status"
+
+      # Build table rows matching headers
+      table_rows = rows.map do |row|
+        table_row = [row[:name]]
+        table_row << row[:path] if verbose
+
+        components.each do |component|
+          next unless has_columns[component]
+
+          table_row << row[component.to_sym]
+        end
+
+        table_row << row[:status]
+        table_row
+      end
+
+      # Render the table
+      say "\n#{config[:name]} (#{rows.size})", :cyan
+      say "=" * 80, :cyan
+
+      table = TTY::Table.new(header: headers, rows: table_rows)
+      puts table.render(:unicode, padding: [0, 1], resize: false)
+    end
+
     def scan_recursive(base_path)
       say "Scanning #{base_path} recursively for Ruby projects...", :cyan
 
@@ -528,100 +527,76 @@ module Harbinger
       nodejs_version = node_detector.detect
       rust_version = rust_detector.detect
 
-      ruby_present = ruby_detector.ruby_detected?
-      rails_present = rails_analyzer.rails_detected?
-      postgres_present = postgres_detector.database_detected?
-      mysql_present = mysql_detector.database_detected?
-      redis_present = redis_detector.redis_detected?
-      mongo_present = mongo_detector.mongo_detected?
-      python_present = python_detector.python_detected?
-      nodejs_present = node_detector.nodejs_detected?
-      rust_present = rust_detector.rust_detected?
+      # Prepare data for ecosystem detection
+      data = {
+        "ruby" => ruby_version,
+        "rails" => rails_version,
+        "postgres" => postgres_version,
+        "mysql" => mysql_version,
+        "redis" => redis_version,
+        "mongo" => mongo_version,
+        "python" => python_version,
+        "nodejs" => nodejs_version,
+        "rust" => rust_version
+      }
+
+      # Determine primary ecosystem
+      primary_ecosystem = determine_primary_ecosystem(data)
+
+      if primary_ecosystem.nil?
+        say "\nNo programming language detected", :yellow
+        say "This appears to be a database-only or infrastructure project", :yellow
+        return
+      end
+
+      # Get components to display for this ecosystem
+      config = ECOSYSTEMS[primary_ecosystem]
+      components_to_display = config[:languages] + config[:databases]
 
       # Display results
       say "\nDetected versions:", :green
-      if ruby_version
-        say "  Ruby:       #{ruby_version}", :white
-      elsif ruby_present
-        say "  Ruby:       Present (version not specified - add .ruby-version or ruby declaration in Gemfile)", :yellow
-      else
-        say "  Ruby:       Not a Ruby project", :red
-      end
 
-      if rails_version
-        say "  Rails:      #{rails_version}", :white
-      elsif rails_present
-        say "  Rails:      Present (version not found in Gemfile.lock)", :yellow
-      else
-        say "  Rails:      Not detected", :yellow
-      end
+      components_to_display.each do |component|
+        version = data[component]
+        display_name = COMPONENT_DISPLAY_NAMES[component]
+        detector_present = case component
+                           when "ruby" then ruby_detector.ruby_detected?
+                           when "rails" then rails_analyzer.rails_detected?
+                           when "postgres" then postgres_detector.database_detected?
+                           when "mysql" then mysql_detector.database_detected?
+                           when "redis" then redis_detector.redis_detected?
+                           when "mongo" then mongo_detector.mongo_detected?
+                           when "python" then python_detector.python_detected?
+                           when "nodejs" then node_detector.nodejs_detected?
+                           when "rust" then rust_detector.rust_detected?
+                           else false
+                           end
 
-      if postgres_version
-        say "  PostgreSQL: #{postgres_version}", :white
-      elsif postgres_present
-        say "  PostgreSQL: Present (version not detected)", :yellow
-      end
-
-      if mysql_version
-        say "  MySQL:      #{mysql_version}", :white
-      elsif mysql_present
-        say "  MySQL:      Present (version not detected)", :yellow
-      end
-
-      if redis_version
-        say "  Redis:      #{redis_version}", :white
-      elsif redis_present
-        say "  Redis:      Present (version not detected)", :yellow
-      end
-
-      if mongo_version
-        say "  MongoDB:    #{mongo_version}", :white
-      elsif mongo_present
-        say "  MongoDB:    Present (version not detected)", :yellow
-      end
-
-      if python_version
-        say "  Python:     #{python_version}", :white
-      elsif python_present
-        say "  Python:     Present (version not detected)", :yellow
-      end
-
-      if nodejs_version
-        say "  Node.js:    #{nodejs_version}", :white
-      elsif nodejs_present
-        say "  Node.js:    Present (version not detected)", :yellow
-      end
-
-      if rust_version
-        say "  Rust:       #{rust_version}", :white
-      elsif rust_present
-        say "  Rust:       Present (version not detected)", :yellow
+        if version && !version.empty?
+          say "  #{display_name.ljust(12)} #{version}", :white
+        elsif detector_present
+          say "  #{display_name.ljust(12)} Present (version not detected)", :yellow
+        end
       end
 
       # Fetch and display EOL dates
-      if ruby_version || rails_version || postgres_version || mysql_version || redis_version || mongo_version || python_version || nodejs_version || rust_version
+      versions_to_check = components_to_display.filter_map do |component|
+        version = data[component]
+        next unless version && !version.empty?
+        # Filter out gem-only database versions
+        next if %w[postgres mysql redis mongo].include?(component) && version.include?("gem")
+
+        [component, version]
+      end
+
+      if versions_to_check.any?
         say "\nFetching EOL data...", :cyan
         fetcher = EolFetcher.new
 
-        display_eol_info(fetcher, "Ruby", ruby_version) if ruby_version
-
-        display_eol_info(fetcher, "Rails", rails_version) if rails_version
-
-        if postgres_version && !postgres_version.include?("gem")
-          display_eol_info(fetcher, "PostgreSQL", postgres_version)
+        versions_to_check.each do |component, version|
+          display_name = COMPONENT_DISPLAY_NAMES[component]
+          display_eol_info(fetcher, display_name, version)
         end
-
-        display_eol_info(fetcher, "MySQL", mysql_version) if mysql_version && !mysql_version.include?("gem")
-
-        display_eol_info(fetcher, "Redis", redis_version) if redis_version && !redis_version.include?("gem")
-
-        display_eol_info(fetcher, "MongoDB", mongo_version) if mongo_version && !mongo_version.include?("gem")
-
-        display_eol_info(fetcher, "Python", python_version) if python_version
-
-        display_eol_info(fetcher, "Node.js", nodejs_version) if nodejs_version
-
-        display_eol_info(fetcher, "Rust", rust_version) if rust_version
       end
 
       # Save to config if --save flag is used
@@ -666,7 +641,14 @@ module Harbinger
     end
 
     def display_eol_info(fetcher, product, version)
-      product_key = product.downcase
+      # Map display name to EOL API key
+      product_key = case product.downcase
+                    when "node.js" then "nodejs"
+                    when "postgresql" then "postgresql"
+                    when "mongodb" then "mongodb"
+                    else product.downcase
+                    end
+
       eol_date = fetcher.eol_date_for(product_key, version)
 
       if eol_date
