@@ -11,7 +11,7 @@ module Harbinger
         detect_from_pyproject_toml ||
           detect_from_python_version ||
           detect_from_pyvenv_cfg ||
-          detect_from_shell
+          (python_detected? ? detect_from_shell : nil)
       end
 
       def python_detected?

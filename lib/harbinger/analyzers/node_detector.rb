@@ -14,7 +14,7 @@ module Harbinger
         detect_from_version_files ||
           detect_from_package_json ||
           detect_from_docker_compose ||
-          detect_from_shell
+          (nodejs_detected? ? detect_from_shell : nil)
       end
 
       def nodejs_detected?
