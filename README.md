@@ -2,13 +2,13 @@
 
 **Track End-of-Life dates for your tech stack and stay ahead of deprecations.**
 
-Harbinger is a CLI tool that scans your Ruby, Rails, PostgreSQL, MySQL, Redis, MongoDB, Python, Node.js, and Rust versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
+Harbinger is a CLI tool that scans your Ruby, Rails, Python, Node.js, Rust, Go, PostgreSQL, MySQL, Redis, and MongoDB versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
 
 ## Features
 
-- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, `.nvmrc`, `.python-version`, `pyproject.toml`, `package.json`, `rust-toolchain`, `Cargo.toml`, `config/database.yml`, and `docker-compose.yml`
+- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, `.nvmrc`, `.python-version`, `pyproject.toml`, `package.json`, `rust-toolchain`, `Cargo.toml`, `go.mod`, `config/database.yml`, and `docker-compose.yml`
 - 🐘 **Database detection** for PostgreSQL, MySQL, Redis, and MongoDB
-- 🌐 **Multi-language support** - Ruby, Python, Node.js, Rust (Go coming in v1.1)
+- 🌐 **Multi-language support** - Ruby, Python, Node.js, Rust, Go
 - 📊 **Ecosystem-grouped dashboard** - Projects organized by language ecosystem with relevant components only
 - 📅 **Fetches EOL data** from [endoflife.date](https://endoflife.date)
 - 🎨 **Color-coded warnings** (red: already EOL, yellow: <6 months, green: safe)
@@ -189,13 +189,14 @@ harbinger version
 1. **Detection**: Harbinger looks for version info in your project:
    - Ruby: `.ruby-version`, `Gemfile` (`ruby "x.x.x"`), `Gemfile.lock` (RUBY VERSION)
    - Rails: `Gemfile.lock` (rails gem)
+   - Python: `.python-version`, `pyproject.toml`, `docker-compose.yml`, or `python --version`
+   - Node.js: `.nvmrc`, `.node-version`, `package.json` engines, `docker-compose.yml`, or `node --version`
+   - Rust: `rust-toolchain`, `rust-toolchain.toml`, `Cargo.toml` (rust-version), `docker-compose.yml`, or `rustc --version`
+   - Go: `go.mod`, `go.work`, `.go-version`, `docker-compose.yml`, or `go version`
    - PostgreSQL: `config/database.yml` (adapter check) + `psql --version` or `pg` gem
    - MySQL: `config/database.yml` (mysql2/trilogy adapter) + `mysql --version` or gem version
    - Redis: `docker-compose.yml` + `redis-server --version` or `redis` gem
    - MongoDB: `docker-compose.yml` + `mongod --version` or `mongoid`/`mongo` gem
-   - Python: `.python-version`, `pyproject.toml`, `docker-compose.yml`, or `python --version`
-   - Node.js: `.nvmrc`, `.node-version`, `package.json` engines, `docker-compose.yml`, or `node --version`
-   - Rust: `rust-toolchain`, `rust-toolchain.toml`, `Cargo.toml` (rust-version), `docker-compose.yml`, or `rustc --version`
 
 2. **EOL Data**: Fetches official EOL dates from [endoflife.date](https://endoflife.date) API
 
@@ -273,6 +274,16 @@ Parses `Gemfile.lock` for the rails gem version.
 
 **Note:** Symbolic channels like "stable", "beta", "nightly" are skipped as they don't provide specific versions.
 
+### Go Detection
+
+1. `go.mod` file (highest priority - standard Go module version specification)
+2. `go.work` file (Go workspace format)
+3. `.go-version` file
+4. Docker Compose `golang:*` images
+5. `go version` for system installation (only when Go project files exist)
+
+**Note:** Shell fallback only executes when Go project files are detected, preventing unnecessary command execution.
+
 ## Requirements
 
 - Ruby >= 3.1.0
@@ -298,7 +309,7 @@ bundle exec exe/harbinger scan .
 ## Roadmap
 
 ### V1.0 - Current (Ready for Release!)
-- ✅ Ruby, Rails, Python, Node.js, Rust version detection
+- ✅ Ruby, Rails, Python, Node.js, Rust, Go version detection
 - ✅ PostgreSQL, MySQL, Redis, MongoDB version detection
 - ✅ Ecosystem-grouped dashboard with smart component display
 - ✅ Export reports to JSON/CSV
@@ -307,10 +318,10 @@ bundle exec exe/harbinger scan .
 - ✅ Color-coded EOL warnings
 
 ### V1.1 - Next
-- 🐘 Go support (go.mod version detection)
 - 🔷 TypeScript version detection
-- 🎯 Framework detection (Django, Flask, Express)
-- 📦 Package manager detection (npm, yarn, pip, bundler versions)
+- 🎯 Framework detection (Django, Flask, Express, Gin)
+- 📦 Package manager detection (npm, yarn, pip, bundler, go modules versions)
+- 🔍 Dependency vulnerability scanning integration
 
 ### V2.0 - Vision
 - 🤖 AI-powered upgrade summaries and breaking change analysis
