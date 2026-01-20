@@ -2,11 +2,11 @@
 
 **Track End-of-Life dates for your tech stack and stay ahead of deprecations.**
 
-Harbinger is a CLI tool that scans your Ruby, Rails, PostgreSQL, MySQL, Redis, and MongoDB versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
+Harbinger is a CLI tool that scans your Ruby, Rails, PostgreSQL, MySQL, Redis, MongoDB, Python, and Node.js versions, and warns you about upcoming EOL (End-of-Life) dates. Never get caught off-guard by unsupported dependencies again.
 
 ## Features
 
-- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, `config/database.yml`, and `docker-compose.yml`
+- 🔍 **Auto-detects versions** from `.ruby-version`, `Gemfile`, `Gemfile.lock`, `.nvmrc`, `.python-version`, `pyproject.toml`, `package.json`, `config/database.yml`, and `docker-compose.yml`
 - 🐘 **Database detection** for PostgreSQL and MySQL (mysql2/trilogy adapters)
 - 📅 **Fetches EOL data** from [endoflife.date](https://endoflife.date)
 - 🎨 **Color-coded warnings** (red: already EOL, yellow: <6 months, green: safe)
@@ -165,6 +165,10 @@ harbinger version
    - Rails: `Gemfile.lock` (rails gem)
    - PostgreSQL: `config/database.yml` (adapter check) + `psql --version` or `pg` gem
    - MySQL: `config/database.yml` (mysql2/trilogy adapter) + `mysql --version` or gem version
+   - Redis: `docker-compose.yml` + `redis-server --version` or `redis` gem
+   - MongoDB: `docker-compose.yml` + `mongod --version` or `mongoid`/`mongo` gem
+   - Python: `.python-version`, `pyproject.toml`, `docker-compose.yml`, or `python --version`
+   - Node.js: `.nvmrc`, `.node-version`, `package.json` engines, `docker-compose.yml`, or `node --version`
 
 2. **EOL Data**: Fetches official EOL dates from [endoflife.date](https://endoflife.date) API
 
@@ -217,6 +221,22 @@ Parses `Gemfile.lock` for the rails gem version.
 2. Tries `mongod --version` for local installations
 3. Falls back to `mongoid` or `mongo` gem version from `Gemfile.lock`
 
+### Python Detection
+
+1. `.python-version` file (highest priority)
+2. `pyproject.toml` (`requires-python` field)
+3. Docker Compose `python:*` images
+4. `python --version` for system installation
+
+### Node.js Detection
+
+1. `.nvmrc` or `.node-version` files (highest priority - explicit version specification)
+2. `package.json` `engines.node` field (e.g., ">=18.0.0")
+3. Docker Compose `node:*` images
+4. `node --version` for system installation
+
+**Version Normalization**: Handles constraint operators (`>=`, `^`, `~`), LTS names (`lts/hydrogen`), and version ranges
+
 ## Requirements
 
 - Ruby >= 3.1.0
@@ -241,7 +261,11 @@ bundle exec exe/harbinger scan .
 
 ## Roadmap
 
-### V0.4.0 - Current
+### V0.5.0 - Current
+- ✅ Python version detection (pyproject.toml, .python-version)
+- ✅ Node.js version detection (package.json, .nvmrc, .node-version)
+
+### V0.4.0
 - ✅ Export reports to JSON/CSV
 - ✅ Docker Compose database version detection
 - ✅ Redis version detection
@@ -255,10 +279,10 @@ bundle exec exe/harbinger scan .
 - ✅ EOL tracking for PostgreSQL and MySQL
 
 ### V1.0 - Future
-- 🐍 Python support (pyproject.toml, requirements.txt)
-- 📦 Node.js support (package.json, .nvmrc)
 - 🦀 Rust support (Cargo.toml)
 - 🐘 Go support (go.mod)
+- 🔷 TypeScript version detection
+- 📦 Package manager detection (npm, yarn, pip)
 
 ### V2.0 - Vision
 - 🤖 AI-powered upgrade summaries

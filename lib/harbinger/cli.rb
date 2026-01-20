@@ -12,6 +12,7 @@ require "harbinger/analyzers/mysql_detector"
 require "harbinger/analyzers/redis_detector"
 require "harbinger/analyzers/mongo_detector"
 require "harbinger/analyzers/python_detector"
+require "harbinger/analyzers/node_detector"
 require "harbinger/eol_fetcher"
 require "harbinger/config_manager"
 require "harbinger/exporters/json_exporter"
@@ -86,6 +87,7 @@ module Harbinger
       has_redis = false
       has_mongo = false
       has_python = false
+      has_nodejs = false
 
       projects.each do |name, data|
         ruby_version = data["ruby"]
@@ -95,6 +97,7 @@ module Harbinger
         redis_version = data["redis"]
         mongo_version = data["mongo"]
         python_version = data["python"]
+        nodejs_version = data["nodejs"]
 
         # Filter out gem-only database versions
         postgres_version = nil if postgres_version&.include?("gem")
@@ -110,8 +113,9 @@ module Harbinger
         redis_present = redis_version && !redis_version.empty?
         mongo_present = mongo_version && !mongo_version.empty?
         python_present = python_version && !python_version.empty?
+        nodejs_present = nodejs_version && !nodejs_version.empty?
 
-        next unless ruby_present || rails_present || postgres_present || mysql_present || redis_present || mongo_present || python_present
+        next unless ruby_present || rails_present || postgres_present || mysql_present || redis_present || mongo_present || python_present || nodejs_present
 
         # Track which columns have data
         has_ruby ||= ruby_present
@@ -121,6 +125,7 @@ module Harbinger
         has_redis ||= redis_present
         has_mongo ||= mongo_present
         has_python ||= python_present
+        has_nodejs ||= nodejs_present
 
         # Determine worst EOL status
         worst_status = :green
@@ -224,6 +229,20 @@ module Harbinger
           end
         end
 
+        if nodejs_present
+          nodejs_eol = fetcher.eol_date_for("nodejs", nodejs_version)
+          if nodejs_eol
+            days = days_until(nodejs_eol)
+            status = eol_color(days)
+            worst_status = status if status_priority(status) > status_priority(worst_status)
+            if days.negative?
+              status_text = "✗ Node.js EOL"
+            elsif days < 180 && !status_text.include?("EOL")
+              status_text = "⚠ Node.js ending soon"
+            end
+          end
+        end
+
         rows << {
           name: name,
           path: File.dirname(data["path"] || ""),
@@ -234,6 +253,7 @@ module Harbinger
           redis: redis_present ? redis_version : "-",
           mongo: mongo_present ? mongo_version : "-",
           python: python_present ? python_version : "-",
+          nodejs: nodejs_present ? nodejs_version : "-",
           status: colorize_status(status_text, worst_status),
           status_raw: status_text
         }
@@ -270,6 +290,7 @@ module Harbinger
       headers << "Redis" if has_redis
       headers << "MongoDB" if has_mongo
       headers << "Python" if has_python
+      headers << "Node.js" if has_nodejs
       headers << "Status"
 
       table_rows = rows.map do |row|
@@ -282,6 +303,7 @@ module Harbinger
         table_row << row[:redis] if has_redis
         table_row << row[:mongo] if has_mongo
         table_row << row[:python] if has_python
+        table_row << row[:nodejs] if has_nodejs
         table_row << row[:status]
         table_row
       end
@@ -301,7 +323,7 @@ module Harbinger
       say "Updating EOL data...", :cyan
 
       fetcher = EolFetcher.new
-      products = %w[ruby rails postgresql mysql redis mongodb python]
+      products = %w[ruby rails postgresql mysql redis mongodb python nodejs]
 
       products.each do |product|
         say "Fetching #{product}...", :white
@@ -375,6 +397,7 @@ module Harbinger
           redis_detector = Analyzers::RedisDetector.new(project_path)
           mongo_detector = Analyzers::MongoDetector.new(project_path)
           python_detector = Analyzers::PythonDetector.new(project_path)
+          node_detector = Analyzers::NodeDetector.new(project_path)
 
           ruby_version = ruby_detector.detect
           rails_version = rails_analyzer.detect
@@ -383,6 +406,7 @@ module Harbinger
           redis_version = redis_detector.detect
           mongo_version = mongo_detector.detect
           python_version = python_detector.detect
+          nodejs_version = node_detector.detect
 
           # Save to config
           config_manager.save_project(
@@ -395,7 +419,8 @@ module Harbinger
               mysql: mysql_version,
               redis: redis_version,
               mongo: mongo_version,
-              python: python_version
+              python: python_version,
+              nodejs: nodejs_version
             }.compact
           )
         end
@@ -465,6 +490,7 @@ module Harbinger
       redis_detector = Analyzers::RedisDetector.new(project_path)
       mongo_detector = Analyzers::MongoDetector.new(project_path)
       python_detector = Analyzers::PythonDetector.new(project_path)
+      node_detector = Analyzers::NodeDetector.new(project_path)
 
       ruby_version = ruby_detector.detect
       rails_version = rails_analyzer.detect
@@ -473,6 +499,7 @@ module Harbinger
       redis_version = redis_detector.detect
       mongo_version = mongo_detector.detect
       python_version = python_detector.detect
+      nodejs_version = node_detector.detect
 
       ruby_present = ruby_detector.ruby_detected?
       rails_present = rails_analyzer.rails_detected?
@@ -481,6 +508,7 @@ module Harbinger
       redis_present = redis_detector.redis_detected?
       mongo_present = mongo_detector.mongo_detected?
       python_present = python_detector.python_detected?
+      nodejs_present = node_detector.nodejs_detected?
 
       # Display results
       say "\nDetected versions:", :green
@@ -530,8 +558,14 @@ module Harbinger
         say "  Python:     Present (version not detected)", :yellow
       end
 
+      if nodejs_version
+        say "  Node.js:    #{nodejs_version}", :white
+      elsif nodejs_present
+        say "  Node.js:    Present (version not detected)", :yellow
+      end
+
       # Fetch and display EOL dates
-      if ruby_version || rails_version || postgres_version || mysql_version || redis_version || mongo_version || python_version
+      if ruby_version || rails_version || postgres_version || mysql_version || redis_version || mongo_version || python_version || nodejs_version
         say "\nFetching EOL data...", :cyan
         fetcher = EolFetcher.new
 
@@ -550,6 +584,8 @@ module Harbinger
         display_eol_info(fetcher, "MongoDB", mongo_version) if mongo_version && !mongo_version.include?("gem")
 
         display_eol_info(fetcher, "Python", python_version) if python_version
+
+        display_eol_info(fetcher, "Node.js", nodejs_version) if nodejs_version
       end
 
       # Save to config if --save flag is used
@@ -560,7 +596,8 @@ module Harbinger
         mysql: mysql_version,
         redis: redis_version,
         mongo: mongo_version,
-        python: python_version
+        python: python_version,
+        nodejs: nodejs_version
       }.compact
 
       if options[:save] && !options[:recursive]
