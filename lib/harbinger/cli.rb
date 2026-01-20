@@ -14,6 +14,7 @@ require "harbinger/analyzers/mongo_detector"
 require "harbinger/analyzers/python_detector"
 require "harbinger/analyzers/node_detector"
 require "harbinger/analyzers/rust_detector"
+require "harbinger/analyzers/go_detector"
 require "harbinger/eol_fetcher"
 require "harbinger/config_manager"
 require "harbinger/exporters/json_exporter"
@@ -172,7 +173,7 @@ module Harbinger
       say "Updating EOL data...", :cyan
 
       fetcher = EolFetcher.new
-      products = %w[ruby rails postgresql mysql redis mongodb python nodejs rust]
+      products = %w[ruby rails postgresql mysql redis mongodb python nodejs rust go]
 
       products.each do |product|
         say "Fetching #{product}...", :white
@@ -248,6 +249,7 @@ module Harbinger
           python_detector = Analyzers::PythonDetector.new(project_path)
           node_detector = Analyzers::NodeDetector.new(project_path)
           rust_detector = Analyzers::RustDetector.new(project_path)
+          go_detector = Analyzers::GoDetector.new(project_path)
 
           ruby_version = ruby_detector.detect
           rails_version = rails_analyzer.detect
@@ -258,6 +260,7 @@ module Harbinger
           python_version = python_detector.detect
           nodejs_version = node_detector.detect
           rust_version = rust_detector.detect
+          go_version = go_detector.detect
 
           # Save to config
           config_manager.save_project(
@@ -272,7 +275,8 @@ module Harbinger
               mongo: mongo_version,
               python: python_version,
               nodejs: nodejs_version,
-              rust: rust_version
+              rust: rust_version,
+              go: go_version
             }.compact
           )
         end
@@ -516,6 +520,7 @@ module Harbinger
       python_detector = Analyzers::PythonDetector.new(project_path)
       node_detector = Analyzers::NodeDetector.new(project_path)
       rust_detector = Analyzers::RustDetector.new(project_path)
+      go_detector = Analyzers::GoDetector.new(project_path)
 
       ruby_version = ruby_detector.detect
       rails_version = rails_analyzer.detect
@@ -526,6 +531,7 @@ module Harbinger
       python_version = python_detector.detect
       nodejs_version = node_detector.detect
       rust_version = rust_detector.detect
+      go_version = go_detector.detect
 
       # Prepare data for ecosystem detection
       data = {
@@ -537,7 +543,8 @@ module Harbinger
         "mongo" => mongo_version,
         "python" => python_version,
         "nodejs" => nodejs_version,
-        "rust" => rust_version
+        "rust" => rust_version,
+        "go" => go_version
       }
 
       # Determine primary ecosystem
@@ -569,6 +576,7 @@ module Harbinger
                            when "python" then python_detector.python_detected?
                            when "nodejs" then node_detector.nodejs_detected?
                            when "rust" then rust_detector.rust_detected?
+                           when "go" then go_detector.go_detected?
                            else false
                            end
 
@@ -609,7 +617,8 @@ module Harbinger
         mongo: mongo_version,
         python: python_version,
         nodejs: nodejs_version,
-        rust: rust_version
+        rust: rust_version,
+        go: go_version
       }.compact
 
       if options[:save] && !options[:recursive]
