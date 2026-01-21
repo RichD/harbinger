@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    stackharbinger (0.4.0)
+    stackharbinger (1.0.0)
       colorize (~> 1.1)
       httparty (~> 0.21)
       thor (~> 1.3)

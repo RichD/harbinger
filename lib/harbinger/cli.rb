@@ -82,7 +82,8 @@ module Harbinger
       "mongo" => "mongodb",
       "python" => "python",
       "nodejs" => "nodejs",
-      "rust" => "rust"
+      "rust" => "rust",
+      "go" => "go"
     }.freeze
 
     desc "scan", "Scan a project directory and detect versions"
@@ -303,7 +304,13 @@ module Harbinger
 
       product_name = PRODUCT_NAME_MAP[component]
       eol_date = fetcher.eol_date_for(product_name, version)
-      return nil unless eol_date
+      return nil if eol_date.nil?
+
+      # Handle actively supported versions (eol = false)
+      if eol_date == false
+        component_display = COMPONENT_DISPLAY_NAMES[component] || component.capitalize
+        return { status: :green, text: "✓ Current", days: Float::INFINITY }
+      end
 
       days = days_until(eol_date)
       status = eol_color(days)
@@ -660,16 +667,20 @@ module Harbinger
 
       eol_date = fetcher.eol_date_for(product_key, version)
 
-      if eol_date
+      if eol_date.nil?
+        say "\n#{product} #{version}:", :white
+        say "  EOL Date: Unknown (version not found in database)", :yellow
+      elsif eol_date == false
+        say "\n#{product} #{version}:", :white
+        say "  EOL Date: N/A (currently supported)", :green
+        say "  Status:   Active support", :green
+      else
         days_until_eol = days_until(eol_date)
         color = eol_color(days_until_eol)
 
         say "\n#{product} #{version}:", :white
         say "  EOL Date: #{eol_date}", color
         say "  Status:   #{eol_status(days_until_eol)}", color
-      else
-        say "\n#{product} #{version}:", :white
-        say "  EOL Date: Unknown (version not found in database)", :yellow
       end
     end
 
