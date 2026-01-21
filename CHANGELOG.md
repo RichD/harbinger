@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-01-20
+
+### Fixed
+- Handle actively supported versions with `eol=false` in EOL data
+- Documentation table alignment in README
+
+### Changed
+- Updated gemspec description
+
+## [1.0.0] - 2026-01-19
+
+### Added
+- **Go version detection**: Detects Go versions from Go projects
+  - Checks `go.mod` for Go version directives
+  - Falls back to `go version` command
+- **Python version detection**: Detects Python versions from Python projects
+  - Checks `pyproject.toml` for Python version requirements
+  - Checks `.python-version` file
+  - Falls back to `python --version` when project files exist
+- **Node.js version detection**: Detects Node.js versions from JavaScript projects
+  - Checks `.nvmrc` file
+  - Checks `.node-version` file
+  - Checks `package.json` engines field
+  - Falls back to `node --version` when project files exist
+- **Rust version detection**: Detects Rust versions from Rust projects
+  - Checks `rust-toolchain` and `rust-toolchain.toml` files
+  - Checks `Cargo.toml` for Rust version requirements
+  - Falls back to `rustc --version` command
+- **Redis version detection**: Detects Redis versions from configuration files
+  - Checks Docker Compose files for Redis service versions
+  - Checks Gemfile.lock for redis gem version
+- **MongoDB version detection**: Detects MongoDB versions from configuration files
+  - Checks Docker Compose files for MongoDB service versions
+  - Checks Gemfile.lock for mongoid gem version
+- **Docker version detection**: Detects versions from Docker configurations
+  - Checks `docker-compose.yml` for service image versions
+  - Checks `Dockerfile` for base image versions
+- **Export formats**: JSON and CSV export for `harbinger show` command
+  - `harbinger show --format=json`
+  - `harbinger show --format=csv`
+- **Remove command**: `harbinger remove [PATH]` to remove tracked projects
+- **Show filter**: Filter projects by path in `harbinger show [FILTER]`
+- **Ecosystem grouping**: Show and scan commands now group versions by ecosystem
+  - Languages: Ruby, Python, Node.js, Go, Rust
+  - Frameworks: Rails
+  - Databases: PostgreSQL, MySQL, Redis, MongoDB
+  - Infrastructure: Docker, Docker Compose
+
+### Changed
+- Enhanced `--verbose` flag for show command with expanded paths
+
+### Fixed
+- Rails version parsing now strips constraint operators (e.g., `~>`, `>=`)
+- Python and Node.js detectors only use shell fallback when project files exist
+- Gemfile.lock version detection
+
+### Technical
+- Refactored show and scan commands to use ecosystem grouping
+- Added detector classes for Go, Python, Node.js, Rust, Redis, MongoDB, and Docker
+
 ## [0.3.0] - 2026-01-18
 
 ### Added
